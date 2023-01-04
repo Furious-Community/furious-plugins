@@ -1,0 +1,18 @@
+"Phrases"
+{
+	"Spawn Protection Start"
+	{
+		"#format"		"{1:d}"
+		"en"  "{pink}You will be spawn protected for{purple} {1} {pink}seconds."  
+	}
+	
+	"Spawn Protection End Normal"
+	{
+		"en"  "{pink} You are no longer spawn protected."
+	}
+	
+	"Spawn Protection End Attack"
+	{
+		"en" "{pink} You are no longer spawn protected."
+	}
+}

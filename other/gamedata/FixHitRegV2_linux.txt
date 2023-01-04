@@ -1,0 +1,70 @@
+"Games"
+{
+	"csgo"
+	{
+		"Functions"
+		{
+			"StartLagComp"
+			{
+				"signature"		"StartLagCompSig"
+				"callconv"		"thiscall"
+				"return"		"void"
+				"this"			"ignore"
+				"arguments"
+				{
+					"CLagCompManager"
+					{
+						"type"	"object"
+					}
+					"player"
+					{
+						"type"	"cbaseentity"
+					}
+					"LagCompensationType"
+					{
+						"type"	"int"
+					}
+					"WeaponPosition"
+					{
+						"type"	"vectorptr"
+					}
+					"WeaponAngles"
+					{
+						"type"	"objectptr"
+					}
+					"WeaponRange"
+					{
+						"type"	"float"
+					}
+				}
+			}
+			"FinishLagComp"
+			{
+				"signature"		"FinishLagCompSig"
+				"callconv"		"thiscall"
+				"return"		"void"
+				"this"			"ignore"
+				"arguments"
+				{
+					"player"
+					{
+						"type"	"cbaseentity"
+					}
+				}
+			}
+		}
+		"Signatures"
+		{
+			"StartLagCompSig"
+			{
+				"library"	"server"
+				"linux"		"\x55\x89\xE5\x57\x56\x53\x83\xEC\x7C\xC7\x45\xBC\x00\x00\x00\x00\x8B\x75\x08"
+			}
+			"FinishLagCompSig"
+			{
+				"library"	"server"
+				"linux"		"\x55\x89\xE5\x57\x56\x53\x83\xEC\x4C\x8B\x0D\x2A\x2A\x2A\x2A\x8B\x75\x08\x85\xC9"		
+			}
+		}
+	}
+}

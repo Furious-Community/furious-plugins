@@ -1,0 +1,24 @@
+"Games"
+{
+	"#default"
+	{
+		"Addresses"
+		{
+			"StartLagComp"
+			{
+				"linux"
+				{
+					"signature" "StartLagCompSig"
+				}
+			}
+		}
+		"Signatures"
+		{
+			"StartLagCompSig"
+			{
+				"library"	"server"
+				"linux"		"\x89\xE5\x57\x56\x53\x83\xEC\x7C\xC7\x45\xBC\x00\x00\x00\x00\x8B\x75\x08"
+			}
+		}
+	}
+}

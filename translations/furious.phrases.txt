@@ -1,0 +1,1266 @@
+"Phrases"
+{
+	///////////////////////////////////
+	//No Tags
+
+	"ragequit"
+	{
+		"#format"	"{1:N}"	//1 = Name
+		"en"		"Player {1} ragequitted."
+	}
+
+	"database saved"
+	{
+		"en"		"You have saved the database."
+	}
+
+	"first point set"
+	{
+		"en"		"You have set the first point of the trigger."
+	}
+
+	"second point set"
+	{
+		"en"		"You have set the second point of the trigger."
+	}
+
+	"trigger deleted"
+	{
+		"#format"	"{1:s}"	//1 = Trigger Name
+		"en"		"You have deleted {1}."
+	}
+
+	"switch time over"
+	{
+		"en"		"{purple}-Time is over!"
+	}
+
+	"added to queue"
+	{
+		"en"		"{purple}You have been added to the queue."
+	}
+
+	"switch too slow"
+	{
+		"en"		"{purple}You were too slow, enough players will be switched."
+	}
+
+	"player switched team"
+	{
+		"#format"	"{1:N},{2:s}"	//1 = Name, 2 = Enemy Team Name
+		"en"		"{purple}Player {orchid}{1} {purple}been switched to team {orchid}{2}{purple}."
+	}
+
+	"score saved"
+	{
+		"en"		"Your score has been saved. Type !rs to reset."
+	}
+
+	"player joined spec"
+	{
+		"#format"	"{1:N}"	//1 = Client
+		"en"		"{purple}Player {orchid}{1} {purple}joined spectators."
+	}
+
+	"death menu title"
+	{
+		"en"		"You died, what’s next?"
+	}
+
+	"join the other team autobalance"
+	{
+		"en"		"Would you like to join the other team?"
+	}
+
+	"moved to spectate"
+	{
+		"en"		"{purple}You have been moved to spectator."
+	}
+
+	"tiers list format"
+	{
+		"#format"	"{1:s},{2:i},{3:i},{4:i}"	//1 = tag, 2 = total points, 3 = points gain, 4 = points lost
+		"en"		"{1} {bluegrey}Points: {gold}{2} {bluegrey}( Gain: {gold}{3} {bluegrey}| Loss: {gold}{4} {bluegrey})"
+	}
+
+	///////////////////////////////////
+	//Hud
+
+	"rankup hud"
+	{
+		"#format"	"{1:i}"	//1 = Rank
+		"en"		"<font size=\"20\"><p align=\"center\"><font size=\"18\">--- RANK UP ---</font></p>\n<p align=\"center\"><font size=\"20\">New Rank: <font color=\"#ff0000\">#{1}</font></font></p>"
+	}
+
+	"rankup chat"
+	{
+		"#format"	"{1:i}"	//1 = Rank
+		"en"		"‹ ‹ ‹ NEW RANK! {1} › › › "
+	}
+
+	"damage display message"
+	{
+		"#format"	"{1:N},{2:i}"	//1 = Name, 2 = Damage
+		"en"		"<font size=\"16\"><font color=\"#ff6c00\">You hit: <font color=\"#ffffff\">{1}</font>\n<font size=\"30\"><font color=\"#ff0000\" size=\"40\">-{2}</font> "
+	}
+
+	"spectator hud"
+	{
+		"#format"	"{1:s},{2:s},{3:N},{4:i},{5:i},{6:i},{7:i},{8:s}"	//1 = Tag, 2 = Color, 3 = Player, 4 = Spectators, 5 = Rank, 6 = Total Players, 7 = Points, 8 = Total Playtime
+		"en"		"{1}{2}<font color='#d93140'>{3}</font> (Spectators: {4})\nRank: {5} / {6} | Points: {7}\nPlaytime: {8}"
+	}
+
+	"spectator hud colored"
+	{
+		"#format"	"{1:s},{2:s},{3:N},{4:i},{5:s},{6:i},{7:s},{8:s}"	//1 = Tag, 2 = Color, 3 = Player, 4 = Spectators, 5 = Rank, 6 = Total Players, 7 = Points, 8 = Total Playtime
+		"en"		"{1}{2}<font color='#d93140'>{3}</font> (Spectators: {4})\nRank: {5} / {6} | Points: {7}\nPlaytime: {8}"
+	}
+
+	"spectator hud 2"
+	{
+		"#format"	"{1:s}"	//1 = Spectators
+		"en"		"Spectators:\n {1}"
+	}
+
+	///////////////////////////////////
+	//Statistics
+
+	"win panel"
+	{
+		"#format"	"{1:s},{2:s},{3:s},{4:s},{5:s}"	//1 = Kills, 2 = Assists, 3 = Deaths, 4 = Position, 5 = Points
+		"en"		"<u><span color='#FFFFFF'>Your Round Summary</span></u><br>Kills {1}     Assists {2}     Deaths {3}<br>Position {4} {5}"
+	}
+
+	"next season timer print"
+	{
+		"#format"	"{1:s}"	//1 = time string
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} This season will end on {purple}{1}"
+	}
+
+	"print current and next season"
+	{
+		"#format"	"{1:i},{2:i},{3:s}"	//1 = current season, 2 = next season, 3 = beginning of next season
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} The current season is {purple}{1} {bluegrey}and the next season {purple}{2}{bluegrey} begins on {purple}{3}{bluegrey}."
+	}
+
+	"ranking enabled print"
+	{
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Ranking has been enabled."
+	}
+
+	"ranking disabled print"
+	{
+		"#format"	"{1:i}{2:i}"	//1 = Total, 2 = Required
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} There are not enough players online to enable the ranking ({gold}{1}{bluegrey}/{gold}{2}{bluegrey})."
+	}
+
+	"ranking enabled hud sync"
+	{
+		"en"		"Ranking has been enabled."
+	}
+
+	"ranking disabled hud sync"
+	{
+		"#format"	"{1:i}{2:i}"	//1 = Total, 2 = Required
+		"en"		"There are not enough players online to enable the ranking ({1}/{2})."
+	}
+
+	"join advert"
+	{
+		"#format"	"{1:N}"	//1 = Name
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Welcome back {gold}{1}{bluegrey}!"
+	}
+
+	"join message"
+	{
+		"#format"	"{1:s},{2:N},{3:i},{4:i}"	//1 = Star (prefix), 2 = Name, 3 = Rank, 4 = Points
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Player {1}{gold}{2} {bluegrey}( Rank {gold}{3}{bluegrey}, {gold}{4} {bluegrey}points ) {green}connected"
+	}
+
+	"join message top 10"
+	{
+		"#format"	"{1:s},{2:N},{3:i},{4:i},{5:i}"	//1 = Star (prefix), 2 = Name, 3 = Rank, 4 = Points, 5 = Rank
+		"en"		"{lightred}[ {gold}Rank {lightred}] - TOP {5} - {bluegrey} Player {1}{gold}{2} {bluegrey}( Rank {gold}{3}{bluegrey}, {gold}{4} {bluegrey}points ) {green}connected"
+	}
+
+	"join advert new player"
+	{
+		"#format"	"{1:N}"	//1 = Name
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Welcome {gold}{1}{bluegrey}!"
+	}
+
+	"join message new player"
+	{
+		"#format"	"{1:N}"	//1 = Name
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Player {gold}{1} {bluegrey}joined for the first time!"
+	}
+
+	"disconnect message"
+	{
+		"#format"	"{1:s},{2:N},{3:s}"	//1 = Star, 2 = Name, 3 = SteamID
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Player {1}{gold}{2} {bluegrey}[ {grey}{3} {bluegrey}] {lightred}disconnected"
+	}
+
+	"steamid not in db"
+	{
+		"#format"	"{1:s}"	//1 = SteamID
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Steamid {gold}{1} {bluegrey}is not ranked."
+	}
+
+	"rank message 1"
+	{
+		"#format"	"{1:s},{2:i},{3:i},{4:s},{5:i}"	//1 = Name, 2 = Rank, 3 = Total Rank, 4 = Tier Tag, 5 = Points
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} {bluegrey}Player {gold}{1} {bluegrey}is ranked {gold}{2}{bluegrey}/{gold}{3} {4} {bluegrey}with {gold}{5} {bluegrey}points."
+	}
+
+	"rank message 2"
+	{
+		"#format"	"{1:i},{2:i},{3:.2f},{4:.2f}"	//1 = Kills, 2 = Deaths, 3 = KDR, 4 = Accuracy
+		"en"		"{bluegrey}Kills: {gold}{1} {bluegrey}| Deaths: {gold}{2} {bluegrey}| KDR: {gold}{3} {bluegrey}| Accuracy: {gold}{4}"
+	}
+
+	"player not found"
+	{
+		"#format"	"{1:s}"	//1 = Name
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Could not find a player with the name {gold}{1}"
+	}
+
+	"found more than one"
+	{
+		"#format"	"{1:s}"	//1 = Name
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Found more than one player with the name {gold}{1}{bluegrey}, type the exact name or use the steamid."
+	}
+
+	"player not online"
+	{
+		"#format"	"{1:s}"	//1 = SteamID
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} The player with the steamid {gold}{1} {bluegrey}is not online."
+	}
+
+	"steamid not in database"
+	{
+		"#format"	"{1:s}"	//1 = SteamID
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Could not find the steamid {gold}{1} {bluegrey}in the database."
+	}
+
+	"kill points gain"
+	{
+		"#format"	"{1:i},{2:N}"	//1 = Points, 2 = Victim
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You gained {lime}{1} ▲ {bluegrey}points for killing {gold}{2}"
+	}
+
+	"kill points gain rampage"
+	{
+		"#format"	"{1:i},{2:N},{3:i}"	//1 = Points, 2 = Victim, 3 = Rampage Points
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You gained {gold}{1} points for killing {gold}{2}. {darkred}+{3} {bluegrey}from {darkred}rampage{bluegrey}!"
+	}
+
+	"kill points loss"
+	{
+		"#format"	"{1:i},{2:N}"	//1 = Points, 2 = Attacker
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You lost {lightred}{1} ▼ {bluegrey}points for being killed by {gold}{2}"
+	}
+
+	"kill points loss suicide"
+	{
+		"#format"	"{1:i}"	//1 = Points
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You lost {gold}{1} {bluegrey}points for suiciding."
+	}
+
+	"assist points"
+	{
+		"#format"	"{1:N}"	//1 = Victim
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You gained {gold}1 {bluegrey}point for assisting the kill on {gold}{1}"
+	}
+
+	"tier up"
+	{
+		"#format"	"{1:s},{2:i},{3:i}"	//1 = Tier, 2 = Point Gain, 3 = Point Loss
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You have {green}upgraded {bluegrey}your tier to {1}{bluegrey}! Kill: {gold}+{2} {bluegrey}Death: {gold}-{3}"
+	}
+
+	"tier up allchat"
+	{
+		"#format"	"{1:N},{2:s}"	//1 = client, 2 = Tier
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} {green}{1} {bluegrey}is now {gold}{2}{bluegrey}!"
+	}
+
+	"tier down"
+	{
+		"#format"	"{1:i},{2:i},{3:i}"	//1 = Tier, 2 = Point Gain, 3 = Point Loss
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You have {red}downgraded {bluegrey}your tier to {gold}{1}{bluegrey}! Kill: {gold}{2} {bluegrey}Death: {gold}-{3}"
+	}
+
+	"rampage on"
+	{
+		"#format"	"{1:i}"	//1 = Points
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You are now in {darkred}Rampage Mode{bluegrey}! You will earn {darkred}1 {bluegrey}extra point for every kill!"
+	}
+
+	"spec lost points"
+	{
+		"#format"	"{1:i}"	//1 = Points
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You lost {gold}{1} points for leaving a clutch situation."
+	}
+
+	"join restricted"
+	{
+		"#format"	"{1:i}"	//1 = Seconds
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You need to wait {1} seconds to join again for leaving a clutch situation."
+	}
+
+	"rampage center text"
+	{
+		"en"		"<font size=\"20\"><p align=\"center\"><font size=\"18\">RAMPAGE</font></p>\n<p align=\"center\"><font size=\"20\">New Rank: <font color=\"#ff0000\">#{1}</font></font></p>"
+	}
+
+	"rampage end"
+	{
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You lost your rampage mode."
+	}
+
+	"status message"
+	{
+		"#format"	"{1:i}"	//1 = Total Players
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} There are a total of {1} players."
+	}
+
+	"profile target not found"
+	{
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Target not found, please try again."
+	}
+
+	"time played"
+	{
+		"#format"	"{1:s},{2:s}"	//1 = Name, 2 = Time String for total
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} {1} has played: {2}"
+	}
+
+	"next map line"
+	{
+		"en"	"----------------------------------------"
+	}
+
+	"next map name"
+	{
+		"#format"	"{1:s}"	//1 = Next Map
+		"en"	"NEXT MAP: {1}"
+	}
+
+	"reset rank"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Your rank has been reset (-{1} credits)."
+	}
+
+	"reset rank not enough credits"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You don't have enough credits ({blue}{1} credits {bluegrey}required)."
+	}
+
+	"season not active"
+	{
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} This season is not active."
+	}
+
+	"seasonal statistics reset"
+	{
+		"#format"	"{1:i}"	//1 = Season
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Your statistics for season {1} have been reset."
+	}
+
+	"country top rank"
+	{
+		"#format"	"{1:s},{2:i},{3:i},{4:s},{5:i}"	//1 = Name, 2 = Rank, 3 = Total, 4 = Country, 5 = Season
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Player {1} is ranked {2}/{3} ( {4} ) in Season {5}"
+	}
+
+	///////////////////////////////////
+	//VIP
+
+	"no tag"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You don't have set a tag yet."
+	}
+
+	"change tag"
+	{
+		"#format"	"{1:s}" //1 = command
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Type in console: {1} <your tag here>"
+	}
+
+	"tag too long"
+	{
+		"#format"	"{1:i},{2:i}"	//1 = Length, 2 = Max Length
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Your tag is too long ({1}/{2} characters)."
+	}
+
+	"tag set"
+	{
+		"#format"	"{1:s}"	//1 = Tag
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You have set your tag to {1}."
+	}
+
+	"updated chat color"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You have updated your chat color."
+	}
+
+	"showranks on"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Your current rank tag will now be displayed in front of your tag."
+	}
+
+	"showranks off"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Your rank tag won't be displayed anymore."
+	}
+
+	"showtiers on"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Your current tier tag will now be displayed in front of your tag."
+	}
+
+	"showtiers off"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Your tier tag won't be displayed anymore."
+	}
+
+	"showgroups on"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Your current groups tag will now be displayed in front of your tag."
+	}
+
+	"showgroups off"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Your groups tag won't be displayed anymore."
+	}
+
+	"tag enabled"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You have enabled your tag."
+	}
+
+	"tag disabled"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You have disabled your tag."
+	}
+
+	"tag deleted"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You have deleted your tag."
+	}
+
+	"no spam"
+	{
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} Please do not spam."
+	}
+
+	"not authorized"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You are not authorized to run this command."
+	}
+
+	"not vip"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You don't have VIP access. Purchase it at {gold}furious-clan.com/donate"
+	}
+
+	"vip short remaining days"
+	{
+		"#format"	"{1:s}"	//1 = Days
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You only have {red}{1}{bluegrey} left of VIP! Repurchase at {gold}furious-clan.com/donate"
+	}
+
+	"vip remaining days"
+	{
+		"#format"	"{1:s}"	//1 = Days
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You have {green}{1}{bluegrey} left of VIP."
+	}
+
+	"model enabled"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You just have enabled your {gold}VIP{bluegrey} player model, you'll have it the next time you spawn."
+	}
+
+	"model disabled"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You just have disabled {gold}VIP{bluegrey} player model, you can always re-enable it from the {gold}VIP menu{bluegrey}."
+	}
+
+	"speclist enabled"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You just have enabled SpecList, now you can see your spectators."
+	}
+
+	"speclist disabled"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You just have disabled SpecList, you can always re-enable it from the {gold}VIP menu{bluegrey}."
+	}
+
+	"tag enabled"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You requested a tag change, type your new {blue}custom tag{bluegrey} in chat."
+	}
+
+	"no longer waiting for tag"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Custom tag change cancelled."
+	}
+
+	"change tag example"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Example:  sm_changetag <tag>"
+	}
+
+	"jail opened"
+	{
+		"#format"	"{1:N}"	//1 = Name
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey}Player {blue}{1} {bluegrey}opened the jail!"
+	}
+
+	"need to wait"
+	{
+		"#format"	"{1:i}"	//1 = Seconds
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You need to wait before you can open the door again {bluegrey}({blue}{1} seconds {bluegrey}left)."
+	}
+
+	"distance too long"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You must get closer to the door to use it."
+	}
+
+	"attempting to open"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Attempting to open the jail door..."
+	}
+
+	"no jail found"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} No jail door has been found."
+	}
+
+	"no time left"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey}You can't extend the map right now."
+	}
+
+	"no time left 2"
+	{
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey}Cannot extend the map right now."
+	}
+
+	"wait for delay"
+	{
+		"#format"	"{1:i}"	//1 = Time left
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey}{1} min(s) are left before the next vote can start."
+	}
+
+	"max votes reached"
+	{
+		"#format"	"{1:i}"	//1 = Max votes
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey}You can't extend the map more than {1} times."
+	}
+
+	"extending map"
+	{
+		"#format"	"{1:i},{2:i},{3:i}" //1 = Agreed votes, 2 = Total votes, 3 = Time left
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey}{1} out of {2} players agreed to extend the map for {3} min(s)."
+	}
+
+	"not enough players to extend"
+	{
+		"#format"	"{1:i},{2:i}" //1 = Refused votes, 2 = Total votes
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey}{1} out of {2} players refused to extend the map."
+	}
+
+	"new donation"
+	{
+		"#format"	"{1:s},{2:s}"	//1 = Name, 2 = Time
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {gold}{1} {bluegrey}has just donated {2} of VIP!"
+	}
+
+	"renewed donation"
+	{
+		"#format"	"{1:s},{2:s}"	//1 = Name, 2 = Time
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {gold}{1} {bluegrey}has just donated VIP for {2} straight!"
+	}
+
+	"gifted donation"
+	{
+		"#format"	"{1:s},{2:s}"	//1 = Name, 2 = Time
+		"en"		"{darkblue}[ {blue}VIP {darkblue}] {gold}{1} {bluegrey}has been gifted {2} of VIP!"
+	}
+
+	"vip vote in progress"
+	{
+		"en"	"{darkblue}[ {blue}VIP {darkblue}] {bluegrey}A vote is already in progress."
+	}
+
+	///////////////////////////////////
+	//Store
+
+	"item given"
+	{
+		"#format"	"{1:s}" //Item Name
+		"en"	"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have received the item: {blue}{1}"
+	}
+
+	"credits amount owned"
+	{
+		"#format"	"{1:N},{2:i},{3:i}"	//1 = client, 2 = Credits, 3 = Credits Earned
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {blue}{1} {bluegrey}have {blue}{2} credits {bluegrey}while gaining {blue}{3} credits {bluegrey}overtime."
+	}
+
+	"score reset"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} Your score has been reset ({blue}-{1} credits{bluegrey})."
+	}
+
+	"score reset not enough credits"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You do not have enough credits to reset your score ({1} needed)."
+	}
+
+	"item purchased"
+	{
+		"#format"	"{1:s}"	//1 = Item Name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have purchased the item {blue}{1}"
+	}
+
+	"item purchased equipped"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have been equipped with it."
+	}
+
+	"item purchased not equipped"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You can equip it from the inventory by writing !inv or !inventory."
+	}
+
+	"item quipped"
+	{
+		"#format"	"{1:s},{2:s},{3:s}" //1 = Equipped or Unequipped, 2 = Item Name, 3 = Map Name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have {1} the item {blue}{2} {bluegrey}for {blue}{3}."
+	}
+
+	"spray info"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} Usage: bind t spray or press inspect key (default: F)"
+	}
+
+	"package rounds left"
+	{
+		"#format"	"{1:i}"	//1 = Rounds Left
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have {blue}{1} rounds {bluegrey}left for your weapon package."
+	}
+
+	"vip required"
+	{
+		"#format"	"{1:s}"	//1 = URL
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} VIP is required to buy this item! Purchase it at {1}."
+	}
+
+	"reset score"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} Your score has been reset (-{1} credits)."
+	}
+
+	"reset score not enough credits"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You don't have enough credits ({blue}{1} credits {bluegrey}required)."
+	}
+
+	"store give credits"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You received {blue}{1} credits {bluegrey}for playing on the server."
+	}
+
+	"vip store give credits"
+	{
+		"#format"	"{1:i},{2:i}"	//1 = Credits, 2 = VIP Extra Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You received {blue}{1}{bluegrey} ({gold}+{2}{bluegrey}){blue} credits{bluegrey} for playing on the server."
+	}
+
+	"store admin give credits"
+	{
+		"#format"	"{1:i},{2:N}"	//1 = Credits, 2 = Client
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You gave {blue}{1} credits{bluegrey} to {blue}{2}{bluegrey}!"
+	}
+
+	"store admin receive credits"
+	{
+		"#format"	"{1:N},{2:i}"	//1 = Client, 2 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{blue} {1} {bluegrey}gave you {blue}{2} credits{bluegrey}!"
+	}
+
+	"vip store admin receive credits"
+	{
+		"#format"	"{1:N},{2:i},{3:i}"	//1 = Client, 2 = Credits,3 = VIP Extra Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{blue} {1} {bluegrey}gave you {blue}{2}{bluegrey} ({gold}+{3}{bluegrey}){blue} credits{bluegrey}!"
+	}
+
+	"store admin send credits global"
+	{
+		"#format"	"{1:N},{2:N},{3:i}"	//1 = Admin, 2 = Client, 3 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{blue} {1} {bluegrey}gave {blue}{2} {bluegrey}{3} credits!"
+	}
+
+	"item purchase not enough credits"
+	{
+		"#format"	"{1:i}"	//1 = Required Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You do not have enough credits to purchase this item. [Requires {blue}{1} {bluegrey}more credits]"
+	}
+
+	"item purchase vip tryout"
+	{
+		"#format"	"{1:s}"	//1 = Days
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You just have started a {green}{1}{gold} VIP{bluegrey} tryout."
+	}
+
+	"item purchase vip"
+	{
+		"#format"	"{1:s}"	//1 = Days
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have purchased a {green}{1}{gold} VIP{bluegrey}."
+	}
+
+	"item tryout not now"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You cannot use this now, wait after your {gold} VIP{bluegrey} duration has ended."
+	}
+
+	"item tryout already tried"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{gold} VIP{bluegrey} tryouts can only be used once and you have already done that."
+	}
+
+	"live preview skyboxes start"
+	{
+		//"#format"	""
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} Live preview started"
+	}
+
+	"live preview skyboxes end"
+	{
+		//"#format"	""
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} Live preview ended"
+	}
+
+	"live preview models not on ground"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You need to be on ground first."
+	}
+
+	"live preview models moving"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You must be standing still!"
+	}
+
+	//Daily reward
+	"daily reward credits collected"
+	{
+		"#format"	"{1:i},{2:i}"	//1 = Credits, 2 = Day
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You've received {1} credits from day {2}/7. Come back tomorrow for more credits!"
+	}
+
+	"daily reward credits collected last day"
+	{
+		"#format"	"{1:i},{2:N}"	//1 = Credits, 2 = Player name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You've received {1} credits from day 7/7. Thanks {2} for being so active on our servers! Your daily progression has now reset."
+	}
+
+	"daily reward already collected"
+	{
+		"#format"	"{1:s}"	//1 = Remaining time formatted
+		"en"	"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You've already used todays !daily. You can collect the next daily in: {1}"
+	}
+
+	"live preview models start"
+	{
+		//"#format"	""
+		"en"		"Start"
+	}
+
+	"live preview models end"
+	{
+		//"#format"	""
+		"en"		"End"
+	}
+
+	"spawn equipment build equipped"
+	{
+		"#format"	"{1:s}"	//Spawn Build Name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have equipped the {blue}{1} {bluegrey}build."
+	}
+
+	"spawn equipment charges remaining"
+	{
+		"#format"	"{1:i}"	//Remaining Charges
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have {blue}{1} {bluegrey}charges remaining."
+	}
+
+	"spawn equipment no builds"
+	{
+		"en"		"You're out of weapons!"
+	}
+
+	"model equipped"
+	{
+		"#format"	"{1:s}"	//Model Name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have equipped the {blue}{1} {bluegrey}model, your model change will happen the next time you spawn."
+	}
+
+	"model unequipped"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} Your model will reset the next time you spawn."
+	}
+
+	"sprayed already this round"
+	{
+		"#format"	"{1:i}"	//1 = Remaining seconds
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You need to wait {1} seconds before you can spray again."
+	}
+
+	"store unavailable"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} Furious store system is unavailable, please try again later."
+	}
+
+	"welcome item received"
+	{
+		"#format"	"{1:s}"	//1 = Item Name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have received the item {1} as a welcome present."
+	}
+
+	"welcome package received"
+	{
+		"#format"	"{1:s},{2:i}"	//1 = Package Name, 2 = Charges
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You have received the weapon package {1} as a welcome present with {2} charges."
+	}
+
+	"not enough charges"
+	{
+		"#format"	"{1:s},{2:i}"	//1 = Item Name, 2 = Charges
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You currently don't have enough {1} charges. (Count: {2})"
+	}
+
+	"credits added"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You gained {1} credits."
+	}
+
+	"vip credits added"
+	{
+		"#format"	"{1:i},{2:i}" //1 = Credits, 2 = VIP Extra Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You gained {1} ({gold}+{2}{bluegrey}) credits."
+	}
+
+	"random credits per hour"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You gained {1} credits randomly."
+	}
+
+	"vip random credits per hour"
+	{
+		"#format"	"{1:i},{2:i}"	//1 = Credits, 2 = VIP Extra Credits
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You gained {1} ({gold}+{2}{bluegrey}) credits randomly."
+	}
+
+	"random credits per hours"
+	{
+		"#format"	"{1:i},{2:i}"	//1 = Credits, 2 = Hours
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You gained {1} credits randomly for {2} hours playtime."
+	}
+
+	"vip random credits per hours"
+	{
+		"#format"	"{1:i},{2:i},{3:i}"	//1 = Credits, 2 = VIP Extra Credits, 2 = Hours
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} You gained {1} ({gold}+{2}{bluegrey}) credits randomly for {3} hours playtime."
+	}
+
+	//Phoenix kit
+
+	"phoenix kit used"
+	{
+		"#format"	"{1:N}"	//1 = client
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {blue}{1} {bluegrey}has used a Phoenix Kit!"
+	}
+
+	"phoenix kit death"
+	{
+		"#format"	"{1:N}" //1 = Player name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {blue}{1} {bluegrey}used Phoenixkit from dying early in the round"
+	}
+
+	"phoenix kit spectate"
+	{
+		"#format"	"{1:N}" //1 = Player name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {blue}{1} {bluegrey}somehow suicided and used Phoenixkit!"
+	}
+
+	"phoenix kit latejoin"
+	{
+		"#format"	"{1:N}" //1 = Player name
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {blue}{1} {bluegrey}used Phoenixkit from being late to the party!"
+	}
+
+	"phoenix kit command"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {bluegrey}You cannot use Phoenixkit right now, wait for another round."
+	}
+
+	"phoenix kit need to be in a team"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {bluegrey}You cannot use Phoenixkit right now, you have to be in a team."
+	}
+
+	"cant use guns while redie"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {bluegrey}You cannot use this command while you are a ghost."
+	}
+
+	"cant use guns while dead"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {bluegrey}You cannot use this command while you are dead."
+	}
+
+	"cant use guns while spectator"
+	{
+		"en"		"{darkblue}[ {blue}Store {darkblue}]{bluegrey} {bluegrey}You cannot use this command while you are a spectator."
+	}
+
+	///////////////////////////////////
+	//Achievements
+
+	"achievement earned"
+	{
+		"#format"	"{1:s}"	//1 = Achievement Name
+		"en"		"{gold}[ {yellow}Achievements {gold}] {yellow}Congratulations! You've earned the achievement {gold}{1}{yellow}!"
+	}
+
+	"achievement item received"
+	{
+		"#format"	"{1:s}"	//1 = Item Name
+		"en"		"{gold}[ {yellow}Achievements {gold}] {yellow}You have earned the item {gold}{1}{yellow}!"
+	}
+
+	"achievement credits received"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{gold}[ {yellow}Achievements {gold}] {yellow}You have earned {gold}{1} credits{yellow}!"
+	}
+
+	///////////////////////////////////
+	//Crates
+
+	"rewarded credits"
+	{
+		"#format"	"{1:i}"	//1 = Credits
+		"en"		"{darkblue}[ {blue}Crates {darkblue}]{bluegrey} You have been given {blue}{1} {bluegrey}credits!"
+	}
+
+	"vip rewarded credits"
+	{
+		"#format"	"{1:i},{2:i}"	//1 = Credits, 2 = VIP Extra Credits
+		"en"		"{darkblue}[ {blue}Crates {darkblue}]{bluegrey} You have been given {blue}{1}{bluegrey} ({gold}+{2}{bluegrey}){blue} credits!"
+	}
+
+	"rewarded armor"
+	{
+		"#format"	"{1:i}"	//1 = Armor
+		"en"		"{darkblue}[ {blue}Crates {darkblue}]{bluegrey} You have received {blue}{1} {bluegrey} armor!"
+	}
+
+	"rewarded refill"
+	{
+		"en"		"{darkblue}[ {blue}Crates {darkblue}]{bluegrey} Your ammunition has been refilled."
+	}
+
+	"crate picked up"
+	{
+		"#format"	"{1:N}"	//1 = Client
+		"en"		"{darkblue}[ {blue}Crates {darkblue}]{bluegrey} {1} has picked up a crate."
+	}
+
+	"crate already exists"
+	{
+		"en"		"{darkblue}[ {blue}Crates {darkblue}]{bluegrey} A crate already exists in the world!"
+	}
+
+	"crate manually spawned"
+	{
+		"#format"	"{1:N}"	//1 = Admin
+		"en"		"{darkblue}[ {blue}Crates {darkblue}]{bluegrey} A crate has been spawned in the world by {blue}{1}{bluegrey}!"
+	}
+
+	///////////////////////////////////
+	//Reset Score
+
+	"Restored"
+	{
+		"en"	"{darkblue}[ {blue}ResetScore {darkblue}] {bluegrey}Score restored."
+	}
+
+	"Score 0"
+	{
+		"en"	"{darkblue}[ {blue}ResetScore {darkblue}] {bluegrey}Your Score is already 0."
+	}
+
+	"No Money"
+	{
+		"#format"	"{1:i}"	//1 = Cost
+		"en"	"{darkblue}[ {blue}ResetScore {darkblue}] {bluegrey}You don't have enough credits. (Cost ${1})"
+	}
+
+	"You Reset"
+	{
+		"en"	"{darkblue}[ {blue}ResetScore {darkblue}] {bluegrey}You successfully reset your score!"
+	}
+
+	"Player Reset Red"
+	{
+		"#format"	"{1:N}"	//1 = Player Name
+		"en"	"{darkblue}[ {blue}ResetScore {darkblue}] {bluegrey}Player {red}{1}{bluegrey} has reset his score!"
+	}
+
+	"Player Reset Blue"
+	{
+		"#format"	"{1:N}"	//1 = Player Name
+		"en"	"{darkblue}[ {blue}ResetScore {darkblue}] {bluegrey}Player {blue}{1}{bluegrey} has reset his score!"
+	}
+
+	"Player Reset Normal"
+	{
+		"#format"	"{1:N}"	//1 = Player Name
+		"en"	"{darkblue}[ {blue}ResetScore {darkblue}] {bluegrey} Player {darkblue}{1}{bluegrey} has reset his score!"
+	}
+
+	//Hitmarkers
+	"hitmarker multiple players"
+	{
+		"#format"	"{1:i},{2:i}"	//1 = Damage to Health, 2 = Damage to Armor
+		"en"		"<font color=\"#FF5733\">You hit: </font><font color=\"#FFFFFF\">Multiple Players</font>\n<font color=\"#FF0000\" size=\"40\">Health: {1} - Armor: {2}</font>"
+	}
+
+	"hitmarker 2 players"
+	{
+		"#format"	"{1:s},{2:i},{3:i},{4:s},{5:i},{6:i}"	//1 = Victim 1, 2 = Damage to Health 1, 3 = Damage to Armor 1, 4 = Victim 2, 5 = Damage to Health 2, 6 = Damage to Armor 2
+		"en"		"<font color=\"#FF5733\">Hit: </font><font color=\"#FFFFFF\">{1}</font>\n<font color=\"#FF0000\" size=\"40\">HP: {2} - Armor: {3}</font>\n<font color=\"#FF5733\">Hit: </font><font color=\"#FFFFFF\">{4}</font>\n<font color=\"#FF0000\" size=\"40\">HP: {5} - Armor: {6}</font>"
+	}
+
+	"hitmarker"
+	{
+		"#format"	"{1:s},{2:i},{3:i}"	//1 = Victim, 2 = Damage to Health, 3 = Damage to Armor
+		"en"		"<font color=\"#8a8a8a\">You hit: </font><font color=\"#FFFFFF\">{1}</font>\n<font color=\"#f21f3d\">Health: {2} <font color=\"#8a8a8a\">- </font><font color=\"#3ba8f5\">Armor: {3}</font>"
+	}
+
+	//Recordings
+	"demos available"
+	{
+		"#format"	"{1:s}"	//1 = User Directory
+		"en"		"New demos are available after each mapchange at: furious-clan.com/csgo/demos/{1}"
+	}
+
+	"server time"
+	{
+		"#format"	"{1:s}"	//1 = Time
+		"en"		"Servertime: {1}"
+	}
+
+	"demo uploaded successfully part 1"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"[ Furious Recordings ] Demo {1} has been uploaded: {2}"
+	}
+
+	"demo uploaded successfully part 2"
+	{
+		"en"		"You can download the demo at: www.furious-clan.com/csgo/demos"
+	}
+
+	//FFA
+	"ffa enabled print"
+	{
+		"#format"	"{1:i}{2:i}"	//1 = Total, 2 = Required
+		"en"		"{red}[ {gold}FFA {red}]{bluegrey} FFA is enabled ({gold}{1}{bluegrey}/{gold}{2}{bluegrey} players are required to disable it again)."
+	}
+
+	"ffa enabled in x seconds"
+	{
+		"#format"	"{1:i}"	//1 = Seconds
+		"en"		"{red}[ {gold}FFA {red}]{bluegrey} FFA will be enabled in {gold}{1}{bluegrey} seconds."
+	}
+
+	"ffa disabled print"
+	{
+		"en"		"{red}[ {gold}FFA {red}]{bluegrey} FFA is disabled now, kill what you see!"
+	}
+
+	"breathe effect hudsync"
+	{
+		"#format"	"{1:i}" //1 = seconds (\n is new line)
+		"en"		"PROTECTED\n{1} seconds left"
+	}
+
+	//Announcements
+	"main menu title"
+	{
+		"en"		"Furious Announcements"
+	}
+
+	"mark as read"
+	{
+		"en"		"Mark As Read"
+	}
+
+	"collect item"
+	{
+		"en"		"Collect"
+	}
+
+	"unread messages"
+	{
+		"#format"	"{1:i}"
+		"en"		"{gold}[ {green}Furious-Announcements {gold}] {blue}You have {red}{1} {blue}unread messages, type {red}!announcements {blue} to read them{gold}."
+	}
+
+	"dropshot points"
+	{
+		"#format"	"{1:i},{2:N},{3:i}"	//1 = Points, 2 = Victim, 3 = Dropshot Points
+		"en"		"{lightred}[ {gold}Rank {lightred}]{bluegrey} You gained {gold}{1} points for killing {gold}{2}. {darkred}+{3} {bluegrey}from {darkred}dropshot{bluegrey}!"
+	}
+
+	"old announcements menu option"
+	{
+		"#format"	"{1:i}"	//1 = Quantity of read announcements
+		"en"		"Old Announcements [{1}]"
+	}
+
+	"old announcements menu title"
+	{
+		"en"		"Old Announcements\n "
+	}
+
+	"you read all announcements"
+	{
+		"en"		"You have read all the newest announcements"
+	}
+
+	//REDIE
+
+	"redie on death"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}Type !redie into chat to respawn as a ghost."
+	}
+
+	"redie you are a ghost"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}You are now a ghost."
+	}
+
+	"redie you must be on a team"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}You must be on a team."
+	}
+
+	"redie wait for round"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}Please wait for the new round to begin."
+	}
+
+	"redie no longer back"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}You will no longer be brought back as a ghost next time you die."
+	}
+
+	"redie ghost next time"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}You will be brought back as a ghost next time you die."
+	}
+
+	"redie you must be dead"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}You must be dead to use redie."
+	}
+
+	"this server is running redie"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}This server is running !redie."
+	}
+
+	"redie cant back to spawn now"
+	{
+		"en"	"{default}[{purple}Redie{default}] {green}You can't use this command now."
+	}
+
+	"knife fight proposal positions not set"
+	{
+		"en"	"{purple}Positions are not set in this map for knife fight. Contact an administrator."
+	}
+
+	"knife fight proposal"
+	{
+		"en"	"{purple}Propose a knife duel. Type {orchid}!knifefight"
+	}
+
+	"knife fight not available now"
+	{
+		"en"	"{purple}You've already voted!You must wait till there are at least 3 players remaining!"
+	}
+
+	"knife fight not available for dead players"
+	{
+		"en"	"{purple}You've already voted!You can't request a knifefight when you're dead."
+	}
+
+	"knife fight you already voted"
+	{
+		"en"	"{purple}You've already voted!"
+	}
+
+	"knife fight you voted"
+	{
+		"en"	"{purple}You've voted, wait till the other player accepts."
+	}
+
+	"knife fight started"
+	{
+		"en"	"{purple}A knifefight has begun!"
+	}
+
+	"menu knife fight title"
+	{
+		"en"	"Would you like to knife duel?"
+	}
+
+	"knife fight start allchat"
+	{
+		"en"	"{purple}A knifefight has begun!"
+	}
+
+	"knife fight start hintmessage"
+	{
+		"en"	"KNIFEFIGHT! You got 30 seconds to settle it."
+	}
+
+	//Anti Jail Kill
+	"anti jail kill entered zone"
+	{
+		"#format"	"{1:i}"	//1 = Seconds
+		"en"		"{purple}You're inside jail. You can't receive or do damage to other players for {1} seconds."
+	}
+
+	//Command restriction
+	"command restricted only group members"
+	{
+		"en"		"{purple}Join Furious-Clan steam group to access this command."
+	}
+}

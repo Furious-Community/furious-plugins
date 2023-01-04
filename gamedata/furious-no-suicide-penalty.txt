@@ -1,0 +1,20 @@
+"Games"
+{
+    "csgo"
+    {
+        "Offsets"
+        {
+            "CBasePlayer::IncrementFragCount"
+            {
+                "linux"     "500"
+                "windows"   "499"
+            }
+
+            "CBasePlayer::IncrementDeathCount"
+            {
+                "linux"     "502"
+                "windows"   "501"
+            }
+        }
+    }
+}

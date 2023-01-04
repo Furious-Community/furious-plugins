@@ -1,0 +1,28 @@
+"Phrases"
+{
+	"chat tag"
+	{
+		"en" "{lightred}[ {gold}Rank {lightred}]{bluegrey} "
+	}
+
+	"claim"
+	{
+		"en" "You have unclaimed rewards, type !claim in chat to claim them."
+	}
+
+	"no rewards"
+	{
+		"en" "You have no rewards to claim."
+	}
+
+	"error"
+	{
+		"en"	"Error while trying to claim rewards, please try again later."
+	}
+
+	"claimed"
+	{
+		"#format"	"{1:i}"	//Season Number
+		"en"	"Your rewards have been claimed successfully for season {1}."
+	}
+}

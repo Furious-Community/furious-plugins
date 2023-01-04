@@ -1,0 +1,248 @@
+"Phrases"
+{
+    "ChatTag"
+    {
+        "en"            "{lightred}[{default}Ghost{lightred}]{default}"
+        "pt"            "{lightred}[{default}Ghost{lightred}]{default}"
+        "ru"            "{lightred}[{default}!ghost{lightred}]{default}"
+    }
+
+    "Advert"
+    {
+        "en"            "This server is running {lightred}Ghost{default}! Type {lightred}/ghost{default}."
+        "pt"            "Este servidor está executando o {lightred}Ghost{default}! Digite: {lightred}!ghost{default}."
+        "ru"            "На этом сервере можно становиться {lightred}Призраком{default}! Введите {lightred}/ghost{default}."
+    }
+
+    "DeathMsg"
+    {
+        "en"            "Type {lightred}/ghost{default} to respawn as a ghost!"
+        "pt"            "{lightred}[{default}Ghost{lightred}]{default}Digite? {lightred}!ghost {default}para reaparecer como um fantasma!"
+        "ru"            "Введите {lightred}/ghost{default}, чтобы стать призраком!"
+    }
+
+    "RespawnOnTouch"
+    {
+        "#format"       "{1:s}"
+        "en"            "You were respawned for touching a {lightred}{1}{default}."
+        "pt"            "Você foi respawned por tocar em um {lightred}{1}{default}."
+        "ru"            "Вы были воскрешены за касание {lightred}{1}{default}."
+    }
+
+    "RespawnOnBlock"
+    {
+        "en"            "You were respawned for {lightred}blocking{default} a{lightred} door{default}!"
+        "pt"            "Você foi respawned por {lightred}bloquear{default} uma{lightred} porta{default}!"
+        "ru"            "Вы были воскрешены за блокирование {lightred}двери{default}."
+    }
+
+    "SavedLocation"
+    {
+        "en"            "Saved Location!"
+        "pt"            "Local salvo!"
+        "ru"            "Точка сохранена!"
+    }
+
+    "SaveLocationFirst"
+    {
+        "en"            "Save a location first!"
+        "pt"            "Salve um local primeiro!"
+        "ru"            "Сперва сохраните точку!"
+    }
+
+    "TeleportedToLocation"
+    {
+        "en"            "Teleported to your saved location!"
+        "pt"            "Teleportado para o seu local salvo!"
+        "ru"            "Телепортировали вас к сохранённой точке!"
+    }
+
+    "EnabledNoclip"
+    {
+        "en"            "Enabled {lightred}Noclip{default}!"
+        "pt"            "Ativado {lightred}Noclip{default}!"
+        "ru"            "Включен {lightred}Noclip{default}!"
+    }
+
+    "DisabledNoclip"
+    {
+        "en"            "Disabled {lightred}Noclip{default}!"
+        "pt"            "Desativado {lightred}Noclip{default}!"
+        "ru"            "Отключён {lightred}Noclip{default}!"
+    }
+
+    "EnabledBhop"
+    {
+        "en"            "Enabled {lightred}Bhop{default}!"
+        "pt"            "Ativado {lightred}Bhop{default}!"
+        "ru"            "Включен {lightred}Bhop{default}!"
+    }
+
+    "DisabledBhop"
+    {
+        "en"            "Disabled {lightred}Bhop{default}!"
+        "pt"            "Desativado {lightred}Bhop{default}!"
+        "ru"            "Отключён {lightred}Bhop{default}!"
+    }
+
+    "EnabledSpeed"
+    {
+        "en"            "Enabled {lightred}Unlimited Speed{default}!"
+        "pt"            "Ativado {lightred}Unlimited Speed{default}!"
+        "ru"            "Включен {lightred}Unlimited Speed{default}!"
+    }
+    
+    "DisabledSpeed"
+    {
+        "en"            "Disabled {lightred}Unlimited Speed{default}!"
+        "pt"            "Desativado {lightred}Unlimited Speed{default}!"
+        "ru"            "Отключён {lightred}Unlimited Speed{default}!"
+    }
+
+    "GhostDisabled"
+    {
+        "en"            "{lightred}Ghost{default} has been temporarily disabled on this server."
+        "pt"            "{lightred}Ghost{default} foi desativado temporariamente neste servidor."
+        "ru"            "{lightred}!ghost{default} был временно отключён на сервере."
+    }
+
+    "UnghostDisabled"
+    {
+        "en"            "{lightred}Unghost{default} has been temporarily disabled on this server."
+        "pt"            "{lightred}Unghost{default} foi desativado temporariamente neste servidor."
+        "ru"            "{lightred}!unghost{default} был временно отключён на сервере."
+    }
+
+    "NotGhost"
+    {
+        "en"            "You must be a {lightred}Ghost{default} to use this command."
+        "pt"            "Você deve ser um {lightred}Ghost{default} para usar este comando."
+        "ru"            "Чтобы использовать эту команду, нужно быть {lightred}Призраком{default}."
+    }
+
+    "WaitForNextRound"
+    {
+        "en"            "Please wait for the round to begin."
+        "pt"            "Por favor, aguarde o início do round."
+        "ru"            "Пожалуйста дождитесь начала раунда."
+    }
+
+    "WarmupDisabled"
+    {
+        "en"            "{lightred}Ghost{default} is disabled during warmup."
+        "pt"            "{lightred}Ghost{default} é desativado durante o aquecimento."
+        "ru"            "{lightred}Призрак{default} отключён во время разминки."
+    }
+
+    "NotValidClient"
+    {
+        "en"            "You must be a valid client in order to use {lightred}Ghost{default}."
+        "pt"            "Você deve ser um player válido para poder usar {lightred}Ghost{default}."
+        "ru"            "Использовать {lightred}Призрака{default} могут только игроки."
+    }
+
+    "NotDead"
+    {
+        "en"            "You must be dead in order to use {lightred}Ghost{default}."
+        "pt"            "Você deve estar morto para poder usar {lightred}Ghost{default}."
+        "ru"            "Вы должны быть мертвы, чтобы использовать {lightred}Призрака{default}."
+    }
+
+    "CommandCooldown"
+    {
+        "#format"       "{1:i}"
+        "en"            "Too many commands issued! Please wait {lightred}{1} seconds{default} before using that command again."
+        "pt"            "Muitos comandos emitidos! Por favor, aguarde {lightred}{1} segundos{default} antes de usar esse comando novamente."
+        "ru"            "Слишком частое использование команд. Подождите {lightred}{1} сек.{default} перед вводом следующей."
+    }
+
+    "OpeningMenu"
+    {
+        "en"            "Opening Menu..."
+        "pt"            "Abrindo Menu..."
+        "ru"            "Открытие меню..."
+    }
+
+    "Ghost"
+    {
+        "en"            "Respawned as a {lightred}Ghost{default}."
+        "pt"            "Respawned como {lightred}Ghost{default}."
+        "ru"            "Превращён в {lightred}призрака{default}."
+    }
+
+    "Unghost"
+    {
+        "en"            "Returned to {lightred}spectator{default}."
+        "pt"            "Retornado para {lightred}Spectator{default}."
+        "ru"            "Возвращён в {lightred}наблюдатели{default}."
+    }
+
+    "MenuTitle"
+    {
+        "en"            "Ghost Menu [sm_rmenu]"
+        "pt"            "Ghost Menu [sm_rmenu]"
+        "ru"            "Призрачное меню [/rmenu]"
+    }
+
+    "MenuItemCheckpoint"
+    {
+        "en"            "Checkpoint"
+        "pt"            "Checkpoint"
+        "ru"            "Чекпоинт"
+    }
+
+    "MenuItemTeleport"
+    {
+        "en"            "Teleport"
+        "pt"            "Teleport"
+        "ru"            "Телепортироваться"
+    }
+
+    "MenuItemNoclip"
+    {
+        "en"            "Noclip (R)"
+        "pt"            "Noclip (R)"
+        "ru"            "Noclip (R)"
+    }
+
+    "MenuItemNoclipDisabled"
+    {
+        "en"            "Noclip (Disabled)"
+        "pt"            "Noclip (Desativado)"
+        "ru"            "Noclip (Отключено)"
+    }
+    "MenuItemBhop"
+    {
+        "en"            "Auto Bhop"
+        "pt"            "Auto Bhop"
+        "ru"            "Auto Bhop"
+    }
+
+    "MenuItemBhopDisabled"
+    {
+        "en"            "Auto Bhop (Disabled)"
+        "pt"            "Auto Bhop (Desativado)"
+        "ru"            "Auto Bhop (Отключено)"
+    }
+
+    "MenuItemSpeed"
+    {
+        "en"            "Speed"
+        "pt"            "Speed"
+        "ru"            "Speed"
+    }
+
+    "MenuItemSpeedDisabled"
+    {
+        "en"            "Speed (Disabled)"
+        "pt"            "Speed (Desativado)"
+        "ru"            "Speed (Отключено)"
+    }
+
+    "MenuItemExit"
+    {
+        "en"            "Exit"
+        "pt"            "Sair"
+        "ru"            "Выход"
+    }
+}
