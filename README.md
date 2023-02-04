@@ -1,5 +1,5 @@
 # furious-plugins
-The plugins which powered Furious servers.
+The plugins which powered the Furious Gaming servers.
 
 Each plugin with details can be found with pages in the wiki for this repository.
 
@@ -25,27 +25,27 @@ Configure SourceMod to connect to the database for one/any of the plugin(s) if n
 
     Navigate to the "configs" folder in the SourceMod directory.
     Open the "databases.cfg" file in a text editor.
-    Add the following code to the file, replacing the placeholder values of the database information for the plugin:
+    Add the following code to the file, replacing the placeholder values of the database information for the plugin(s):
 
     "furious-placeholder"
     {
-       "driver"           "mysql"
-       "host"             "your-database-host"
+       "driver"           "mysql" //or sqlite
+       "host"             "your-database-host" //or localhost
        "database"         "your-database-name"
        "user"             "your-database-user"
        "pass"             "your-database-password"
-       "port"             "3306"
+       "port"             "3306" //if mysql
     }
 
 Download and install the SourceMod plugin(s).
 
-    Download the plugin from this repository through this plugins folder.
+    Download the plugin(s) from this repository through this plugins folder.
     Place the plugin(s) in the "plugins" folder in the SourceMod directory.
-    Start or restart the server to activate the plugin.
+    Start or restart the server to activate the plugin(s).
 
-Verify if the plugin is working correctly.
+Verify if the plugin(s) is/are working correctly.
 
-    Connect to the server and check if the plugin is working as expected.
+    Connect to the server and check if the plugin(s) is/are working as expected.
     You can also check the log files in the "logs" folder in the SourceMod directory to see if there are any errors.
 
 That's it! You've successfully installed one or more of the plugin(s) on your server. Be sure to check the wiki for specific pages relating to each plugin for dependencies you might need and more specific instructions in-general.
