@@ -1,9 +1,9 @@
 /*-- Pragmas --*/
 #pragma semicolon 1
-//#pragma newdecls required
+#pragma newdecls required
 
 /*-- Defines --*/
-#define PLUGIN_VERSION "1.3.0"
+#define PLUGIN_VERSION "1.3.1"
 
 #define VIP_FLAGS ADMFLAG_CUSTOM5
 
@@ -48,14 +48,11 @@
 #include <furious/furious-notifications>
 #define REQUIRE_PLUGIN
 
-//ConVar convar_TopRankIconIndex[TOP_RANKS_NUMBER];
-//int g_TopRankIconIndex[TOP_RANKS_NUMBER];
 int g_PersonalDataPublicLevelOffset = -1;
 
 int g_iLoadedStats[MAXPLAYERS + 1];
 int g_LoadingTrials[MAXPLAYERS + 1];
 int g_IsDataLoaded[MAXPLAYERS + 1][4];
-int g_JoinTime[MAXPLAYERS + 1];
 int g_HudColorTimes[MAXPLAYERS + 1];
 int g_LastSpectated[MAXPLAYERS + 1];
 
@@ -96,13 +93,6 @@ ConVar convar_LosePointsOnSuicide;
 ConVar convar_ConnectMessage;
 ConVar convar_DisconnectMessage;
 ConVar convar_SeasonChangeTime;
-// ConVar convar_Rank10plus;
-// ConVar convar_Rank50plus;
-// ConVar convar_Rank100plus;
-// ConVar convar_Rank250plus;
-// ConVar convar_Rank500plus;
-// ConVar convar_Rank1000plus;
-//ConVar convar_VipScoreboardIcon;
 
 /*-- Forwards --*/
 Handle g_Forward_OnGlobalsValidated;
@@ -119,9 +109,8 @@ Handle g_Forward_OnSeasonalStatsReset;
 Database g_Database_Global;
 Database g_Database_Server;
 
-bool plugin_tags;
+bool g_bFrsTags;
 bool g_bFrsWeapons;
-bool g_bFrsNews;
 
 char g_sCurrentMap[MAX_NAME_LENGTH];
 bool g_bLate;
@@ -160,10 +149,6 @@ bool g_HudSkipClient[MAXPLAYERS + 1] =  { true, ... };
 bool g_bCountFirstHit[MAXPLAYERS + 1];
 Handle g_SpecTimer[MAXPLAYERS + 1];
 
-float g_Cache_GlobalPlaytime[MAXPLAYERS + 1];
-float g_Cache_ServerPlaytime[MAXPLAYERS + 1];
-int g_Cache_Playtimes[MAXPLAYERS + 1];
-
 int g_iTempVipIcons[] =  { 13465768, 23465768, 33465768, 43465768, 53465768, 63465768, 73465768, 83465768, 93465768, 103465768, 113465768, 123465768, 133465768 };
 int g_iTempVipIconIdIndex;
 
@@ -185,9 +170,6 @@ float g_fStatistics_Global_KDR[MAXPLAYERS + 1];
 float g_fStatistics_Global_Accuracy[MAXPLAYERS + 1];
 float g_fStatistics_Global_Playtime[MAXPLAYERS + 1];
 int g_iStatistics_Global_FirstCreated[MAXPLAYERS + 1];
-int g_iStatistics_Global_LastUpdated[MAXPLAYERS + 1];
-int g_iStatistics_Global_LastInserted[MAXPLAYERS + 1];
-int g_iStatistics_Global_Joins[MAXPLAYERS + 1];
 
 //* Seasonal Statistics *//
 int g_iStatistics_Seasonal_Kills[MAXPLAYERS + 1];
@@ -215,7 +197,6 @@ int g_iStatistics_Mapbased_Hits[MAXPLAYERS + 1];
 int g_iStatistics_Mapbased_Shots[MAXPLAYERS + 1];
 float g_fStatistics_Mapbased_KDR[MAXPLAYERS + 1];
 float g_fStatistics_Mapbased_Accuracy[MAXPLAYERS + 1];
-float g_fStatistics_Mapbased_Playtime[MAXPLAYERS + 1];
 
 //* Cached Data *//
 int g_iCacheData_Rank[MAXPLAYERS + 1];
@@ -250,67 +231,6 @@ int g_iAwaitingMessageOnAuthorized[MAXPLAYERS + 1];
 
 Handle g_hSeasonChangeSocket;
 Handle g_hSocketListeners[16];
-
-/*enum struct Statistics
-{
-	int kills;
-	int deaths;
-	int assists;
-	int headshots;
-	int points;
-	int longest_killstreak;
-	int hits;
-	int shots;
-	float kdr;
-	float accuracy;
-	float playtime;
-	int first_created;
-	int last_updated;
-
-	//maps
-	JSON_Object weapon_stats;
-
-	//sessions
-	int points_gained;
-	int points_lost;
-	int ranks_gained;
-	int ranks_lost;
-
-	void Init()
-	{
-		this.Reset();
-		this.weapon_stats = new JSON_Object();
-	}
-
-	void Reset()
-	{
-		this.kills = 0;
-		this.deaths = 0;
-		this.assists = 0;
-		this.headshots = 0;
-		this.points = 0;
-		this.longest_killstreak = 0;
-		this.hits = 0;
-		this.shots = 0;
-		this.kdr = 0.0;
-		this.accuracy = 0.0;
-		this.playtime = 0.0;
-		this.first_created = 0;
-		this.last_updated = 0;
-
-		if (this.weapon_stats != null)
-			this.weapon_stats.Cleanup();
-		delete this.weapon_stats;
-
-		this.points_gained = 0;
-		this.points_lost = 0;
-		this.ranks_gained = 0;
-		this.ranks_lost = 0;
-	}
-}
-Statistics g_Stats_Global[MAXPLAYERS + 1];
-Statistics g_Stats_Map[MAXPLAYERS + 1];
-Statistics g_Stats_Session[MAXPLAYERS + 1];*/
 
 enum struct WinPanel {
 	int client;
@@ -454,27 +374,6 @@ public void OnPluginStart()
 	convar_ConnectMessage = AutoExecConfig_CreateConVar("sm_furious_statistics_enable_connect_message", "1", "Toggle connect message", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	convar_DisconnectMessage = AutoExecConfig_CreateConVar("sm_furious_statistics_enable_disconnect_message", "1", "Toggle disconnect message", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	convar_SeasonChangeTime = AutoExecConfig_CreateConVar("sm_furious_statistics_season_change_time", "12", "On which hour of the day should season change?", FCVAR_NOTIFY, true, 0.0, true, 23.0);
-
-	// static char sConvar[64], sIndex[3], sCvarInfo[128];
-
-	// for (int i = 1; i <= TOP_RANKS_NUMBER; ++i)
-	// {
-	// 	Format(sConvar, sizeof(sConvar), "sm_furious_statistics_toprank%i_icon_id", i);
-	// 	Format(sCvarInfo, sizeof(sCvarInfo), "Rank %i icon index as in levelNUM.png", i);
-
-	// 	IntToString(i, sIndex, sizeof(sIndex));
-
-	// 	convar_TopRankIconIndex[i - 1] = AutoExecConfig_CreateConVar(sConvar, sIndex, sCvarInfo, FCVAR_NOTIFY, true, 0.0);
-	// }
-
-	// convar_Rank10plus = AutoExecConfig_CreateConVar("sm_furious_statistics_rank10plus_icon_id", "0", "Rank 10+ icon index as in levelNUM.png", FCVAR_NOTIFY, true, 0.0);
-	// convar_Rank50plus = AutoExecConfig_CreateConVar("sm_furious_statistics_rank50plus_icon_id", "0", "Rank 50+ icon index as in levelNUM.png", FCVAR_NOTIFY, true, 0.0);
-	// convar_Rank100plus = AutoExecConfig_CreateConVar("sm_furious_statistics_rank100plus_icon_id", "0", "Rank 100+ icon index as in levelNUM.png", FCVAR_NOTIFY, true, 0.0);
-	// convar_Rank250plus = AutoExecConfig_CreateConVar("sm_furious_statistics_rank250plus_icon_id", "0", "Rank 250+ icon index as in levelNUM.png", FCVAR_NOTIFY, true, 0.0);
-	// convar_Rank500plus = AutoExecConfig_CreateConVar("sm_furious_statistics_rank500plus_icon_id", "0", "Rank 500+ icon index as in levelNUM.png", FCVAR_NOTIFY, true, 0.0);
-	// convar_Rank1000plus = AutoExecConfig_CreateConVar("sm_furious_statistics_rank1000plus_icon_id", "0", "Rank 1000+ icon index as in levelNUM.png", FCVAR_NOTIFY, true, 0.0);
-	//convar_VipScoreboardIcon = AutoExecConfig_CreateConVar("sm_furious_statistics_vip_icon_id", "0", "Vip icon index as in NUM.png", FCVAR_NOTIFY, true, 0.0);
-
 	AutoExecConfig_ExecuteFile();
 
 	convar_MinimumPlayersStatistics.AddChangeHook(ConVarChanged_MinimumPlayers);
@@ -560,14 +459,12 @@ public void OnPluginStart()
 
 	g_PersonalDataPublicLevelOffset = FindSendPropInfo("CCSPlayerResource", "m_nPersonaDataPublicLevel");
 
-	for(int i = 1; i <= MaxClients; i++)
-	{
+	for(int i = 1; i <= MaxClients; i++) {
 		if (IsClientConnected(i)) {
 			OnClientConnected(i);
 		}
 
-		if (IsClientInGame(i))
-		{
+		if (IsClientInGame(i)) {
 			OnClientPutInServer(i);
 		}
 	}
@@ -575,29 +472,24 @@ public void OnPluginStart()
 
 public void OnAllPluginsLoaded()
 {
-	plugin_tags = LibraryExists("furious_tags");
+	g_bFrsTags = LibraryExists("furious_tags");
 	g_bFrsWeapons = LibraryExists("furious_weapons");
-	g_bFrsNews = LibraryExists("furious_notifications");
 }
 
 public void OnLibraryAdded(const char[] name)
 {
 	if (StrEqual(name, "furious_tags"))
-		plugin_tags = true;
+		g_bFrsTags = true;
 	else if (StrEqual(name, "furious_weapons"))
 		g_bFrsWeapons = true;
-	else if (StrEqual(name, "furious_notifications"))
-		g_bFrsNews = true;
 }
 
 public void OnLibraryRemoved(const char[] name)
 {
 	if (StrEqual(name, "furious_tags"))
-		plugin_tags = false;
+		g_bFrsTags = false;
 	else if (StrEqual(name, "furious_weapons"))
 		g_bFrsWeapons = false;
-	else if (StrEqual(name, "furious_notifications"))
-		g_bFrsNews = false;
 }
 
 public Action Timer_DisplayNextSeason(Handle timer)
@@ -747,12 +639,6 @@ public void OnMapStart()
 
 	if (resourceEnt != -1)
 	{
-		// for (int j = 0; j < TOP_RANKS_NUMBER; j++)
-		// {
-		// 	Format(sBuffer, sizeof(sBuffer), "materials/panorama/images/icons/xp/level%i.png", convar_TopRankIconIndex[j].IntValue);
-		// 	AddFileToDownloadsTable(sBuffer);
-		// }
-
 		SDKHook(resourceEnt, SDKHook_ThinkPost, OnClientResourceEntityPostThink);
 	}
 }
@@ -795,9 +681,6 @@ public void OnConfigsExecuted()
 
 	if (g_bLate)
 		ValidateRankCheck();
-
-	// for (int j = 0; j < TOP_RANKS_NUMBER; j++)
-	// 	g_TopRankIconIndex[j] = convar_TopRankIconIndex[j].IntValue;
 }
 
 public void OnSQLConnect_Global(Database db, const char[] error, any data)
@@ -1017,16 +900,10 @@ public void OnClientConnected(int client)
 	g_IsDataLoaded[client][DATA_SEASONAL2] = false;
 	g_IsDataLoaded[client][DATA_MAPBASED] = false;
 
-	g_JoinTime[client] = GetTime();
-
 	g_HudColorTimes[client] = 0;
 	g_LastSpectated[client] = 0;
 
 	g_bSpecHud[client] = true;
-
-	g_Cache_GlobalPlaytime[client] = 0.0;
-	g_Cache_ServerPlaytime[client] = 0.0;
-	g_Cache_Playtimes[client] = 0;
 
 	g_iStatistics_Global_Credits[client] = 0;
 	g_iStatistics_Global_CreditsEarned[client] = 0;
@@ -1043,9 +920,6 @@ public void OnClientConnected(int client)
 	g_fStatistics_Global_Accuracy[client] = 0.0;
 	g_fStatistics_Global_Playtime[client] = 0.0;
 	g_iStatistics_Global_FirstCreated[client] = 0;
-	g_iStatistics_Global_LastUpdated[client] = 0;
-	g_iStatistics_Global_LastInserted[client] = 0;
-	g_iStatistics_Global_Joins[client] = 0;
 
 	g_iStatistics_Seasonal_Kills[client] = 0;
 	g_iStatistics_Seasonal_Deaths[client] = 0;
@@ -1070,7 +944,6 @@ public void OnClientConnected(int client)
 	g_iStatistics_Mapbased_Shots[client] = 0;
 	g_fStatistics_Mapbased_KDR[client] = 0.0;
 	g_fStatistics_Mapbased_Accuracy[client] = 0.0;
-	g_fStatistics_Mapbased_Playtime[client] = 0.0;
 
 	g_iCacheData_Points[client] = 0;
 	g_iCacheData_Rank[client] = 0;
@@ -1136,32 +1009,29 @@ public void OnClientAuthorized(int client, const char[] auth)
 
 	g_MapCount.Push(iAccountID);
 
-	if (!IsFakeClient(client))
+	if (!GetClientAuthId(client, AuthId_Steam2, g_sCacheData_SteamID2[client], sizeof(g_sCacheData_SteamID2[])))
 	{
-		if (!GetClientAuthId(client, AuthId_Steam2, g_sCacheData_SteamID2[client], sizeof(g_sCacheData_SteamID2[])))
-		{
-			LogError("Error while verifying client Steam2: Steam is not connected.");
-			g_sCacheData_SteamID2[client][0] = '\0';
-		}
-
-		if (!GetClientAuthId(client, AuthId_Steam3, g_sCacheData_SteamID3[client], sizeof(g_sCacheData_SteamID3[])))
-		{
-			LogError("Error while verifying client Steam3: Steam is not connected.");
-			g_sCacheData_SteamID3[client][0] = '\0';
-		}
-
-		if (!GetClientAuthId(client, AuthId_SteamID64, g_sCacheData_SteamID64[client], sizeof(g_sCacheData_SteamID64[])))
-		{
-			LogError("Error while verifying client Steam64: Steam is not connected.");
-			g_sCacheData_SteamID64[client][0] = '\0';
-		}
-
-		int serial = GetClientSerial(client);
-		CreateTimer(2.5 + 0.025 * float(client), Timer_CheckLoading, serial, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
-
-		StopTimer(g_SpecTimer[client]);
-		g_SpecTimer[client] = CreateTimer(0.1, Timer_DisplaySpectatorHud, serial, TIMER_REPEAT);
+		LogError("Error while verifying client Steam2: Steam is not connected.");
+		g_sCacheData_SteamID2[client][0] = '\0';
 	}
+
+	if (!GetClientAuthId(client, AuthId_Steam3, g_sCacheData_SteamID3[client], sizeof(g_sCacheData_SteamID3[])))
+	{
+		LogError("Error while verifying client Steam3: Steam is not connected.");
+		g_sCacheData_SteamID3[client][0] = '\0';
+	}
+
+	if (!GetClientAuthId(client, AuthId_SteamID64, g_sCacheData_SteamID64[client], sizeof(g_sCacheData_SteamID64[])))
+	{
+		LogError("Error while verifying client Steam64: Steam is not connected.");
+		g_sCacheData_SteamID64[client][0] = '\0';
+	}
+
+	int serial = GetClientSerial(client);
+	CreateTimer(2.5 + 0.025 * float(client), Timer_CheckLoading, serial, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+
+	StopTimer(g_SpecTimer[client]);
+	g_SpecTimer[client] = CreateTimer(0.1, Timer_DisplaySpectatorHud, serial, TIMER_REPEAT);
 }
 
 public void OnClientPutInServer(int client)
@@ -1255,9 +1125,8 @@ public void TQuery_PullClientGlobalData(Database db, DBResultSet results, const 
 		g_fStatistics_Global_Accuracy[client] = results.FetchFloat(12);
 		g_fStatistics_Global_Playtime[client] = results.FetchFloat(13);
 		g_iStatistics_Global_FirstCreated[client] = results.FetchInt(14);
-		g_iStatistics_Global_Joins[client] = results.FetchInt(15);
 
-		if (g_iStatistics_Global_Joins[client] == 0)
+		if (results.FetchInt(15) == 0)
 		{
 			Call_StartForward(g_Forward_OnGlobalsValidated);
 			Call_PushCell(client);
@@ -1305,7 +1174,7 @@ void ValidateClientGlobalData(int client)
 	char sIP[64];
 	GetClientIP(client, sIP, sizeof(sIP));
 
-	int iTime = g_iStatistics_Global_LastInserted[client] = GetTime();
+	int iTime = GetTime();
 
 	char sCountry[64];
 	GeoipCountry(sIP, sCountry, sizeof(sCountry));
@@ -1330,7 +1199,6 @@ public void TQuery_OnGlobalUpdate(Database db, DBResultSet results, const char[]
 	{
 		int time = GetTime();
 		g_iStatistics_Global_FirstCreated[client] = time;
-		g_iStatistics_Global_LastUpdated[client] = time;
 	}
 
 	if (g_Database_Server != null && g_bActiveSeason)
@@ -1547,7 +1415,6 @@ public void TQuery_PullClientMapBasedData(Database db, DBResultSet results, cons
 		g_iStatistics_Mapbased_Shots[client] = results.FetchInt(7);
 		g_fStatistics_Mapbased_KDR[client] = results.FetchFloat(8);
 		g_fStatistics_Mapbased_Accuracy[client] = results.FetchFloat(9);
-		g_fStatistics_Mapbased_Playtime[client] = results.FetchFloat(10);
 
 		g_IsDataLoaded[client][DATA_MAPBASED] = true;
 		g_iLoadedStats[client]++;
@@ -2709,7 +2576,6 @@ public void TQuery_PullMenuStatistics(Database db, DBResultSet results, const ch
 		int iHeadshots = results.FetchInt(9);
 		float fKDR = results.FetchFloat(10);
 		float fAccuracy = results.FetchFloat(11);
-		//float fPlaytime = results.FetchFloat(12);
 
 		char sWeaponsData[WEAPON_STATISTICS_SIZE];
 		results.FetchString(13, sWeaponsData, sizeof(sWeaponsData));
@@ -3281,7 +3147,6 @@ public Action Command_TimePlayed(int client, int args)
 	{
 		float session = GetClientTime(client);
 		float total_time = g_fStatistics_Global_Playtime[client] + session;
-		//float season_time = g_fStatistics_Seasonal_Playtime[client] + session;
 
 		char sTotalTime[128];
 		FormatSeconds(total_time, sTotalTime, sizeof(sTotalTime), "%D days %H hours %M minutes");
@@ -3302,7 +3167,6 @@ public Action Command_TimePlayed(int client, int args)
 	if (target > 0)
 	{
 		float session = GetClientTime(target);
-		//float total_time = g_fStatistics_Global_Playtime[target] + session;
 		float season_time = g_fStatistics_Seasonal_Playtime[target] + session;
 
 		char sSeasonTime[128];
@@ -3317,10 +3181,6 @@ public Action Command_TimePlayed(int client, int args)
 		return Plugin_Handled;
 	}
 
-	g_Cache_GlobalPlaytime[client] = 0.0;
-	g_Cache_ServerPlaytime[client] = 0.0;
-	g_Cache_Playtimes[client] = 0;
-
 	char sSearch[512];
 
 	if (IsStringNumeric(sTarget))
@@ -3332,10 +3192,6 @@ public Action Command_TimePlayed(int client, int args)
 
 	char sTable[MAX_TABLE_SIZE];
 	char sQuery[MAX_QUERY_SIZE];
-
-	convar_Table_GlobalStatistics.GetString(sTable, sizeof(sTable));
-	Format(sQuery, sizeof(sQuery), "SELECT `name`, `playtime` FROM `%s` WHERE %s;", sTable, sSearch);
-	g_Database_Global.Query(TQuery_OnParsePlaytime, sQuery, GetClientSerial(client));
 
 	GetTableString_Season(sTable, sizeof(sTable));
 	Format(sQuery, sizeof(sQuery), "SELECT `name`, `playtime` FROM `%s` WHERE %s;", sTable, sSearch);
@@ -3361,16 +3217,9 @@ public void TQuery_OnParsePlaytime(Database db, DBResultSet results, const char[
 	if ((client = GetClientFromSerial(data)) == 0)
 		return;
 
-	if (g_Cache_Playtimes[client] == -1)
-	{
-		g_Cache_Playtimes[client] = 0;
-		return;
-	}
-
 	if (results.RowCount == 0)
 	{
 		CPrintToChat(client, "%T", "profile target not found", client);
-		g_Cache_Playtimes[client] = -1;
 		return;
 	}
 
@@ -3381,24 +3230,10 @@ public void TQuery_OnParsePlaytime(Database db, DBResultSet results, const char[
 
 		float playtime = results.FetchFloat(1);
 
-		if (g_Cache_Playtimes[client] == 0)
-			g_Cache_GlobalPlaytime[client] = playtime;
-		else if (g_Cache_Playtimes[client] == 1)
-			g_Cache_ServerPlaytime[client] = playtime;
+		char sSeasonTime[128];
+		FormatSeconds(playtime, sSeasonTime, sizeof(sSeasonTime), "%D days %H hours %M minutes");
 
-		g_Cache_Playtimes[client]++;
-
-		if (g_Cache_Playtimes[client] >= 2)
-		{
-			char sSeasonTime[128];
-			FormatSeconds(g_Cache_ServerPlaytime[client], sSeasonTime, sizeof(sSeasonTime), "%D days %H hours %M minutes");
-
-			CPrintToChatAll("%t", "time played", sName, sSeasonTime);
-
-			g_Cache_GlobalPlaytime[client] = 0.0;
-			g_Cache_ServerPlaytime[client] = 0.0;
-			g_Cache_Playtimes[client] = 0;
-		}
+		CPrintToChatAll("%t", "time played", sName, sSeasonTime);
 	}
 }
 
@@ -4441,9 +4276,8 @@ public Action Timer_DisplaySpectatorHud(Handle timer, any serial)
 	if (!convar_Status.BoolValue)
 		return Plugin_Continue;
 
-	int client = GetClientFromSerial(serial);
-
-	if (client == 0)
+	int client;
+	if ((client = GetClientFromSerial(serial)) == 0)
 		return Plugin_Continue;
 
 	int specCount = 0;
@@ -4451,12 +4285,7 @@ public Action Timer_DisplaySpectatorHud(Handle timer, any serial)
 
 	for (i = 1; i <= MaxClients; i++)
 	{
-		if (i == client)
-		{
-			continue;
-		}
-
-		if (!IsClientInGame(i) || IsFakeClient(i) || !IsClientObserver(i) || !g_bSpecHud[i])
+		if (!IsClientInGame(i) || IsFakeClient(i) || !IsClientObserver(i) || client == i || !g_bSpecHud[i])
 			continue;
 
 		observerMode = GetEntProp(i, Prop_Send, "m_iObserverMode");
@@ -4479,12 +4308,7 @@ public Action Timer_DisplaySpectatorHud(Handle timer, any serial)
 
 		for (i = 1; i <= MaxClients; i++)
 		{
-			if (i == client)
-			{
-				continue;
-			}
-
-			if (!IsClientInGame(i) || IsFakeClient(i) || !IsClientObserver(i) || !g_bSpecHud[i])
+			if (!IsClientInGame(i) || IsFakeClient(i) || !IsClientObserver(i) || i == client || !g_bSpecHud[i])
 				continue;
 
 			observerMode = GetEntProp(i, Prop_Send, "m_iObserverMode");
@@ -4515,7 +4339,7 @@ public Action Timer_DisplaySpectatorHud(Handle timer, any serial)
 
 	char sPrefix[96]; char sPrefixColor[96]; char sGroup[96];
 
-	if (plugin_tags)
+	if (g_bFrsTags)
 	{
 		int index = Furious_Tags_GetPrefixID(client);
 
@@ -4557,19 +4381,14 @@ public Action Timer_DisplaySpectatorHud(Handle timer, any serial)
 		Format(sPoints[client], sizeof(sPoints[]), "<font color='#ff657a'>%i▼</font>", RoundToFloor(points));
 	}
 
-	if (StrEqual(sRank[client], ""))
+	if (strlen(sRank[client]) == 0)
 		Format(sRank[client], sizeof(sRank[]), "%i", rank);
-	if (StrEqual(sPoints[client], ""))
+	if (strlen(sPoints[client]) == 0)
 		Format(sPoints[client], sizeof(sPoints[]), "%i", RoundToFloor(points));
 
 	for (i = 1; i <= MaxClients; i++)
 	{
-		if (i == client)
-		{
-			continue;
-		}
-
-		if (!IsClientInGame(i) || IsFakeClient(i) || !IsClientObserver(i) || !g_bSpecHud[i] || bStoppedTimer[i])
+		if (!IsClientInGame(i) || IsFakeClient(i) || !IsClientObserver(i) || i == client || !g_bSpecHud[i] || bStoppedTimer[i])
 			continue;
 
 		observerMode = GetEntProp(i, Prop_Send, "m_iObserverMode");
@@ -5296,7 +5115,6 @@ public void OnClientResourceEntityPostThink(int entity)
 	if (g_PersonalDataPublicLevelOffset == -1)
 		return;
 
-	//int rank = -1;
 	int icon = -1;
 	char sIcon[PLATFORM_MAX_PATH];
 
@@ -5318,34 +5136,6 @@ public void OnClientResourceEntityPostThink(int entity)
 		if ((icon = StringToInt(sIcon)) > 0) {
 			SetEntData(entity, g_PersonalDataPublicLevelOffset + (i * 4), icon);
 		}
-
-		// rank = g_iCacheData_Rank[i] - 1;
-
-		// if (rank >= 0 && rank < TOP_RANKS_NUMBER)
-		// {
-		// 	SetEntData(entity, g_PersonalDataPublicLevelOffset + (i * 4), g_TopRankIconIndex[rank]);
-		// 	continue;
-		// }
-
-		// if (rank < 0 || rank < TOP_RANKS_NUMBER)
-		// 	continue;
-
-		// int index = -1;
-
-		// if (rank < 49)
-		// 	index = convar_Rank10plus.IntValue;
-		// else if (rank < 99)
-		// 	index = convar_Rank50plus.IntValue;
-		// else if (rank < 249)
-		// 	index = convar_Rank100plus.IntValue;
-		// else if (rank < 499)
-		// 	index = convar_Rank250plus.IntValue;
-		// else if (rank < 999)
-		// 	index = convar_Rank500plus.IntValue;
-		// else if (rank > 1000)
-		// 	index = convar_Rank1000plus.IntValue;
-
-		// SetEntData(entity, g_PersonalDataPublicLevelOffset + (i * 4), index);
 	}
 }
 
@@ -5556,6 +5346,7 @@ public void TQuery_CheckTopTen3(Database database, DBResultSet results, const ch
 	hSocketData.SetInt("season", season);
 
 	JSON_Array hTopPlayers = new JSON_Array();
+	
 	int ix;
 	while (results.FetchRow())
 	{
@@ -5568,16 +5359,8 @@ public void TQuery_CheckTopTen3(Database database, DBResultSet results, const ch
 
 		hTopPlayers.PushObject(hTopPlayer);
 	}
+
 	Format(sBody, sizeof(sBody), "%s\n\nSee all stats at: furious-clan.com/#/players", sBody);
-
-	if (g_bFrsNews)
-	{
-		//Furious_Notifications_AddNew("single", sAddress, "all", "", sTitle, sBody);
-
-		//for (int i = 1; i <= MaxClients; i++)
-		//if (IsClientInGame(i) && !IsFakeClient(i))
-		//	Furious_Notifications_RefreshClient(i);
-	}
 
 	hSocketData.SetObject("data", hTopPlayers);
 	char sSocketData[4096];
@@ -5635,7 +5418,7 @@ public void OnSocketIncoming(Handle socket, Handle newSocket, char[] remoteIP, i
 	SocketSend(newSocket, "working!\n");
 }
 
-public OnChildSocketReceive(Handle socket, char[] receiveData, const int dataSize, any hFile)
+public void OnChildSocketReceive(Handle socket, char[] receiveData, const int dataSize, any hFile)
 {
 	SocketSend(socket, receiveData);
 
@@ -5643,12 +5426,12 @@ public OnChildSocketReceive(Handle socket, char[] receiveData, const int dataSiz
 		delete socket;
 }
 
-public OnChildSocketDisconnected(Handle socket, any hFile)
+public void OnChildSocketDisconnected(Handle socket, any hFile)
 {
 	delete socket;
 }
 
-public OnChildSocketError(Handle socket, const int errorType, const int errorNum, any ary)
+public void OnChildSocketError(Handle socket, const int errorType, const int errorNum, any ary)
 {
 	LogError("child socket error %d (errno %d)", errorType, errorNum);
 	delete socket;
@@ -5868,11 +5651,7 @@ public void OnWinPanel(Event event, const char[] name, bool dontBroadcast) {
 			continue;
 		}
 
-		Event newevent_message = CreateEvent("cs_win_panel_round");
-		newevent_message.SetString("funfact_token", sText);
-
-		newevent_message.FireToClient(i);
-		newevent_message.Cancel();
+		ShowWinPanel(i, sText);
 
 		g_WinPanel[i].Clear();
 	}
@@ -5885,11 +5664,7 @@ public Action Command_TestWinPanel(int client, int args) {
 		return Plugin_Handled;
 	}
 
-	Event newevent_message = CreateEvent("cs_win_panel_round");
-	newevent_message.SetString("funfact_token", sText);
-
-	newevent_message.FireToClient(client);
-	newevent_message.Cancel();
+	ShowWinPanel(client, sText);
 
 	return Plugin_Handled;
 }
@@ -5945,4 +5720,12 @@ bool GenerateWinPanel(int client, char[] text, int size) {
 	FormatEx(text, size, "%T", "win panel", client, sKills, sAssists, sPosition, sPoints);
 
 	return true;
+}
+
+void ShowWinPanel(int client, const char[] text) {
+	Event newevent_message = CreateEvent("cs_win_panel_round");
+	newevent_message.SetString("funfact_token", text);
+
+	newevent_message.FireToClient(client);
+	newevent_message.Cancel();
 }
