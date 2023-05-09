@@ -596,7 +596,7 @@ public void OnMapEnd()
 				trie.GetValue("PointsGained", fLocalPointsGained);
 				trie.GetValue("PointsLost", fLocalPointsLost);
 
-				g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ranks_gained`, `ranks_lost`, `points_gained`, `points_lost`, `map`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%i', '%i', '%f', '%f', '%s', '%i');", sTable, sName, iAccountID, sSteamID2, sSteamID3, sSteamID64, iLocalRanksGained, iLocalRanksLost, fLocalPointsGained, fLocalPointsLost, g_sCurrentMap, GetTime());
+				g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ranks_gained`, `ranks_lost`, `points_gained`, `points_lost`, `map`) VALUES ('%s', '%i', '%s', '%s', '%s', '%i', '%i', '%f', '%f', '%s');", sTable, sName, iAccountID, sSteamID2, sSteamID3, sSteamID64, iLocalRanksGained, iLocalRanksLost, fLocalPointsGained, fLocalPointsLost, g_sCurrentMap);
 				trans.AddQuery(sQuery);
 
 				delete trie;
@@ -665,10 +665,8 @@ void ParseMapData()
 		char sTable[MAX_TABLE_SIZE];
 		convar_Table_GlobalMapStatistics.GetString(sTable, sizeof(sTable));
 
-		int time = GetTime();
-
 		char sQuery[MAX_QUERY_SIZE];
-		g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`map`, `map_loads`, `first_created`) VALUES ('%s', '1', '%i') ON DUPLICATE KEY UPDATE `map_loads` = `map_loads` + '1';", sTable, g_sCurrentMap, time);
+		g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`map`, `map_loads`) VALUES ('%s', '1') ON DUPLICATE KEY UPDATE `map_loads` = `map_loads` + '1';", sTable, g_sCurrentMap);
 		g_Database_Global.Query(TQuery_InsertNewMap, sQuery);
 	}
 }
@@ -743,9 +741,7 @@ public void OnSQLConnect_Global(Database db, const char[] error, any data)
 	char sCurrent[64];
 	FormatTime(sCurrent, sizeof(sCurrent), "%m-%d");
 
-	int iTime = GetTime();
-
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `first_created`) VALUES ('%s', '%s', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s';", sTable, sHostname, sIP, iTime, sHostname);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`) VALUES ('%s', '%s') ON DUPLICATE KEY UPDATE `hostname` = '%s';", sTable, sHostname, sIP, sHostname);
 	g_Database_Global.Query(TQuery_OnUpdateServerSettings, sQuery);
 
 	//Check for the season after we have valid SQL queries.
@@ -1151,13 +1147,11 @@ void ValidateClientGlobalData(int client)
 	char sIP[64];
 	GetClientIP(client, sIP, sizeof(sIP));
 
-	int iTime = GetTime();
-
 	char sCountry[64];
 	GeoipCountry(sIP, sCountry, sizeof(sCountry));
 
 	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ip`, `country`, `clan_tag`, `clan_name`, `credits`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '', '', '0', '%i') ON DUPLICATE KEY UPDATE `name` = '%s', `accountid` = '%i', `steamid3` = '%s', `steamid64` = '%s', `ip` = '%s', `country` = '%s', `joined_times` = `joined_times` + 1;", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sIP, sCountry, iTime, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sIP, sCountry);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ip`, `country`, `clan_tag`, `clan_name`, `credits`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '', '', '0') ON DUPLICATE KEY UPDATE `name` = '%s', `accountid` = '%i', `steamid3` = '%s', `steamid64` = '%s', `ip` = '%s', `country` = '%s', `joined_times` = `joined_times` + 1;", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sIP, sCountry, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sIP, sCountry);
 	g_Database_Global.Query(TQuery_OnGlobalUpdate, sQuery, GetClientSerial(client));
 }
 
@@ -1430,7 +1424,7 @@ void ValidateClientServerData(int client)
 	data.WriteString(sName);
 	data.WriteCell(iTime);
 
-	g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `weapons_statistics`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%i') ON DUPLICATE KEY UPDATE `name` = '%s';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sWeaponsData, iTime, sEscapedName);
+	g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `weapons_statistics`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s') ON DUPLICATE KEY UPDATE `name` = '%s';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sWeaponsData, sEscapedName);
 	g_Database_Server.Query(TQuery_SyncClient_Season, sQuery, data);
 }
 
@@ -1480,7 +1474,7 @@ public void TQuery_SyncClient_Season(Database db, DBResultSet results, const cha
 	GetTableString_Maps(sTable, sizeof(sTable));
 
 	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `map`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%i') ON DUPLICATE KEY UPDATE `name` = '%s';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], g_sCurrentMap, iTime, sEscapedName);
+	g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `map`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s') ON DUPLICATE KEY UPDATE `name` = '%s';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], g_sCurrentMap, sEscapedName);
 	g_Database_Server.Query(TQuery_SyncClient_Map, sQuery, serial);
 }
 
@@ -5234,11 +5228,9 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 
 	char sIP[64];
 	GetServerIP(sIP, sizeof(sIP), true);
-
-	int iTime = GetTime();
-
+	
 	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `season_number`, `next_season`, `first_created`) VALUES ('%s', '%s', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s', `season_number` = '%i', `next_season` = '%i';", sTable, sHostname, sIP, g_iSeason, g_iNextSeason, iTime, sHostname, g_iSeason, g_iNextSeason);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `season_number`, `next_season`) VALUES ('%s', '%s', '%i', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s', `season_number` = '%i', `next_season` = '%i';", sTable, sHostname, sIP, g_iSeason, g_iNextSeason, sHostname, g_iSeason, g_iNextSeason);
 	g_Database_Global.Query(TQuery_OnUpdateServerSettings, sQuery);
 
 	if (g_iSeason == 0)

@@ -1469,8 +1469,6 @@ bool GiveItem(int client, char[] sItemName, const char[] sItemType, const char[]
 		char[] sEscapedName = new char[size + 1];
 		g_Database.Escape(sName, sEscapedName, size + 1);
 
-		int iTime = GetTime();
-
 		char sTable[MAX_TABLE_SIZE];
 		char sQuery[4096];
 
@@ -1480,7 +1478,7 @@ bool GiveItem(int client, char[] sItemName, const char[] sItemType, const char[]
 		pack.WriteString(sName);
 
 		convar_Table_Items.GetString(sTable, sizeof(sTable));
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `item_name`, `item_type`, `item_description`, `price`, `charges`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '%s', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `charges` = '%i';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sItemName2, sItemType, sItemDescription, iPrice, (iCurCharges + iCharges), iTime, (iCurCharges + iCharges));
+		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `item_name`, `item_type`, `item_description`, `price`, `charges`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '%s', '%i', '%i') ON DUPLICATE KEY UPDATE `charges` = '%i';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sItemName2, sItemType, sItemDescription, iPrice, (iCurCharges + iCharges), (iCurCharges + iCharges));
 		g_Database.Query(Query_GiveItem, sQuery, pack, DBPrio_Low);
 
 		return true;
@@ -1527,9 +1525,7 @@ bool GiveItemToAccount(int accountid, char[] sItemName, const char[] sItemType, 
 
 	char sItemName2[128];
 	Format(sItemName2, sizeof(sItemName2), StrEqual(sItemType, ITEM_DEFINE_PHOENIXKIT) ? "PhoenixCharges" : sItemName);
-
-	int iTime = GetTime();
-
+	
 	char sTable[MAX_TABLE_SIZE];
 	char sQuery[4096];
 
@@ -1538,7 +1534,7 @@ bool GiveItemToAccount(int accountid, char[] sItemName, const char[] sItemType, 
 	pack.WriteString(sItemName);
 
 	convar_Table_Items.GetString(sTable, sizeof(sTable));
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `item_name`, `item_type`, `item_description`, `price`, `charges`, `first_created`) VALUES ('', '%i', '', '', '', '%s', '%s', '%s', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `charges` = `charges + '%i';", sTable, accountid, sItemName2, sItemType, sItemDescription, iPrice, iCharges, iTime, iCharges);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `item_name`, `item_type`, `item_description`, `price`, `charges`) VALUES ('', '%i', '', '', '', '%s', '%s', '%s', '%i', '%i') ON DUPLICATE KEY UPDATE `charges` = `charges + '%i';", sTable, accountid, sItemName2, sItemType, sItemDescription, iPrice, iCharges, iCharges);
 	g_Database.Query(Query_GiveItemToAccount, sQuery, pack, DBPrio_Low);
 
 	return true;
