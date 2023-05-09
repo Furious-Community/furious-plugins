@@ -3,7 +3,7 @@
 #pragma newdecls required
 
 /*-- Defines --*/
-#define PLUGIN_VERSION "1.3.4"
+#define PLUGIN_VERSION "1.3.5"
 
 #define VIP_FLAGS ADMFLAG_CUSTOM5
 
@@ -18,9 +18,9 @@
 #define TOP_RANKS_NUMBER 10
 
 #define DATA_GLOBAL 0
-#define DATA_SEASONAL 1
-#define DATA_MAPBASED 2
-#define DATA_SESSIONBASED 3
+#define DATA_SEASON 1
+#define DATA_MAP 2
+#define DATA_SESSION 3
 #define DATA_CACHE 4
 
 #define MESSAGE_WELCOME 1
@@ -149,6 +149,7 @@ int g_iTempVipIconIdIndex;
 int g_iCheckRankTries[MAXPLAYERS + 1];
 
 enum struct Stats {
+	//all
 	int kills;
 	int deaths;
 	int assists;
@@ -157,6 +158,24 @@ enum struct Stats {
 	int shots;
 	float kdr;
 	float accuracy;
+
+	float points; //global, season, map
+	int longest_killstreak; //global, season, map
+	float playtime; //global, season
+	int first_created; //global
+
+	//season
+	int credits;
+	int credits_earned;
+	float credits_timer;
+	int last_updated;
+	JSON_Object weapons;
+
+	//session
+	float points_gained;
+	float points_lost;
+	int ranks_gained;
+	int ranks_lost;
 
 	void Clear() {
 		this.kills = 0;
@@ -167,30 +186,30 @@ enum struct Stats {
 		this.shots = 0;
 		this.kdr = 0.0;
 		this.accuracy = 0.0;
+
+		this.points = 0.0;
+		this.longest_killstreak = 0;
+		this.playtime = 0.0;
+		this.first_created = 0;
+
+		this.credits = 0;
+		this.credits_earned = 0;
+		this.credits_timer = 0.0;
+		this.last_updated = 0;
+		if (this.weapons != null)
+		{
+			this.weapons .Cleanup();
+			delete this.weapons;
+		}
+
+		this.points_gained = 0.0;
+		this.points_lost = 0.0;
+		this.ranks_gained = 0;
+		this.ranks_lost = 0;
 	}
 }
 
 Stats g_Stats[MAXPLAYERS + 1][4];
-
-//* Global Stats *//
-int g_iStatistics_Global_Credits[MAXPLAYERS + 1];
-int g_iStatistics_Global_CreditsEarned[MAXPLAYERS + 1];
-float g_fStatistics_Global_CreditsTimer[MAXPLAYERS + 1];
-float g_fStatistics_Global_Points[MAXPLAYERS + 1];
-int g_iStatistics_Global_Longest_Killstreak[MAXPLAYERS + 1];
-float g_fStatistics_Global_Playtime[MAXPLAYERS + 1];
-int g_iStatistics_Global_FirstCreated[MAXPLAYERS + 1];
-
-//* Seasonal Statistics *//
-float g_fStatistics_Seasonal_Points[MAXPLAYERS + 1];
-int g_iStatistics_Seasonal_Longest_Killstreak[MAXPLAYERS + 1];
-float g_fStatistics_Seasonal_Playtime[MAXPLAYERS + 1];
-JSON_Object g_hStatistics_Seasonal_WeaponsStatistics[MAXPLAYERS + 1];
-int g_iStatistics_Seasonal_LastUpdated[MAXPLAYERS + 1];
-
-//* Map Statistics *//
-float g_fStatistics_Mapbased_Points[MAXPLAYERS + 1];
-int g_iStatistics_Mapbased_Longest_Killstreak[MAXPLAYERS + 1];
 
 //* Cached Data *//
 int g_iCacheData_Rank[MAXPLAYERS + 1];
@@ -204,13 +223,6 @@ char g_sCacheData_SteamID3[MAXPLAYERS + 1][64];
 char g_sCacheData_SteamID64[MAXPLAYERS + 1][96];
 int g_iCacheData_AccountID[MAXPLAYERS + 1];
 
-//* Session Statistics *//
-float g_fStatistics_Sessionbased_PointsGained[MAXPLAYERS + 1];
-float g_fStatistics_Sessionbased_PointsLost[MAXPLAYERS + 1];
-int g_iStatistics_Sessionbased_RanksGained[MAXPLAYERS + 1];
-int g_iStatistics_Sessionbased_RanksLost[MAXPLAYERS + 1];
-
-//
 bool bStoppedTimer[MAXPLAYERS + 1];
 
 int g_iAwaitingMessageOnAuthorized[MAXPLAYERS + 1];
@@ -246,10 +258,10 @@ enum struct WinPanel {
 		}
 
 		this.loaded = true;
-		this.kills = g_Stats[this.client][DATA_SEASONAL].kills;
-		this.assists = g_Stats[this.client][DATA_SEASONAL].assists;
+		this.kills = g_Stats[this.client][DATA_SEASON].kills;
+		this.assists = g_Stats[this.client][DATA_SEASON].assists;
 		this.position = g_iCacheData_Rank[this.client];
-		this.points = g_fStatistics_Seasonal_Points[this.client];
+		this.points = g_Stats[this.client][DATA_SEASON].points;
 
 		return true;
 	}
@@ -913,30 +925,14 @@ public void OnClientConnected(int client)
 	g_LoadingTrials[client] = 0;
 
 	g_IsDataLoaded[client][DATA_GLOBAL] = false;
-	g_IsDataLoaded[client][DATA_SEASONAL] = false;
+	g_IsDataLoaded[client][DATA_SEASON] = false;
 	g_IsDataLoaded[client][DATA_CACHE] = false;
-	g_IsDataLoaded[client][DATA_MAPBASED] = false;
+	g_IsDataLoaded[client][DATA_MAP] = false;
 
 	g_HudColorTimes[client] = 0;
 	g_LastSpectated[client] = 0;
 
 	g_bSpecHud[client] = true;
-
-	g_iStatistics_Global_Credits[client] = 0;
-	g_iStatistics_Global_CreditsEarned[client] = 0;
-	g_fStatistics_Global_CreditsTimer[client] = 0.0;
-	g_fStatistics_Global_Points[client] = 0.0;
-	g_iStatistics_Global_Longest_Killstreak[client] = 0;
-	g_fStatistics_Global_Playtime[client] = 0.0;
-	g_iStatistics_Global_FirstCreated[client] = 0;
-
-	g_fStatistics_Seasonal_Points[client] = 0.0;
-	g_iStatistics_Seasonal_Longest_Killstreak[client] = 0;
-	g_fStatistics_Seasonal_Playtime[client] = 0.0;
-	g_iStatistics_Seasonal_LastUpdated[client] = 0;
-
-	g_fStatistics_Mapbased_Points[client] = 0.0;
-	g_iStatistics_Mapbased_Longest_Killstreak[client] = 0;
 
 	g_iCacheData_Points[client] = 0;
 	g_iCacheData_Rank[client] = 0;
@@ -945,16 +941,11 @@ public void OnClientConnected(int client)
 	g_fCacheData_PointsLoss[client] = 0.0;
 	g_sCacheData_TierTag[client][0] = '\0';
 
-	g_fStatistics_Sessionbased_PointsGained[client] = 0.0;
-	g_fStatistics_Sessionbased_PointsLost[client] = 0.0;
-	g_iStatistics_Sessionbased_RanksGained[client] = 0;
-	g_iStatistics_Sessionbased_RanksLost[client] = 0;
-
 	g_iCheckRankTries[client] = 0;
 
 	g_iAwaitingMessageOnAuthorized[client] = 0;
 
-	g_hStatistics_Seasonal_WeaponsStatistics[client] = new JSON_Object();
+	g_Stats[client][DATA_SEASON].weapons = new JSON_Object();
 
 	g_WinPanel[client].Init(client);
 }
@@ -972,18 +963,18 @@ public void OnClientAuthorized(int client, const char[] auth)
 	StringMap trie;
 	if (g_SessionCache.GetValue(sAccountID, trie) && trie != null)
 	{
-		trie.GetValue("Kills", g_Stats[client][DATA_SESSIONBASED].kills);
-		trie.GetValue("Deaths", g_Stats[client][DATA_SESSIONBASED].deaths);
-		trie.GetValue("Assists", g_Stats[client][DATA_SESSIONBASED].assists);
-		trie.GetValue("Headshots", g_Stats[client][DATA_SESSIONBASED].headshots);
-		trie.GetValue("Hits", g_Stats[client][DATA_SESSIONBASED].hits);
-		trie.GetValue("Shots", g_Stats[client][DATA_SESSIONBASED].shots);
-		trie.GetValue("KDR", g_Stats[client][DATA_SESSIONBASED].kdr);
-		trie.GetValue("Accuracy", g_Stats[client][DATA_SESSIONBASED].accuracy);
-		trie.GetValue("PointsGained", g_fStatistics_Sessionbased_PointsGained[client]);
-		trie.GetValue("PointsLost", g_fStatistics_Sessionbased_PointsLost[client]);
-		trie.GetValue("RanksGained", g_iStatistics_Sessionbased_RanksGained[client]);
-		trie.GetValue("RanksLost", g_iStatistics_Sessionbased_RanksLost[client]);
+		trie.GetValue("Kills", g_Stats[client][DATA_SESSION].kills);
+		trie.GetValue("Deaths", g_Stats[client][DATA_SESSION].deaths);
+		trie.GetValue("Assists", g_Stats[client][DATA_SESSION].assists);
+		trie.GetValue("Headshots", g_Stats[client][DATA_SESSION].headshots);
+		trie.GetValue("Hits", g_Stats[client][DATA_SESSION].hits);
+		trie.GetValue("Shots", g_Stats[client][DATA_SESSION].shots);
+		trie.GetValue("KDR", g_Stats[client][DATA_SESSION].kdr);
+		trie.GetValue("Accuracy", g_Stats[client][DATA_SESSION].accuracy);
+		trie.GetValue("PointsGained", g_Stats[client][DATA_SESSION].points_gained);
+		trie.GetValue("PointsLost", g_Stats[client][DATA_SESSION].points_lost);
+		trie.GetValue("RanksGained", g_Stats[client][DATA_SESSION].ranks_gained);
+		trie.GetValue("RanksLost", g_Stats[client][DATA_SESSION].ranks_lost);
 
 		delete trie;
 		g_SessionCache.Remove(sAccountID);
@@ -1060,7 +1051,7 @@ void SyncClientStatistics(int client)
 	}
 	else if (g_Database_Server != null && g_bActiveSeason)
 	{
-		if (!g_IsDataLoaded[client][DATA_SEASONAL])
+		if (!g_IsDataLoaded[client][DATA_SEASON])
 		{
 			GetTableString_Season(sTable, sizeof(sTable));
 
@@ -1074,7 +1065,7 @@ void SyncClientStatistics(int client)
 			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
 			g_Database_Server.Query(TQuery_PullClientSeasonCache, sQuery, serial);
 		}
-		else if (!g_IsDataLoaded[client][DATA_MAPBASED])
+		else if (!g_IsDataLoaded[client][DATA_MAP])
 		{
 			GetTableString_Maps(sTable, sizeof(sTable));
 
@@ -1095,21 +1086,21 @@ public void TQuery_PullClientGlobalData(Database db, DBResultSet results, const 
 
 	if (results.FetchRow())
 	{
-		g_iStatistics_Global_Credits[client] = results.FetchInt(0);
-		g_iStatistics_Global_CreditsEarned[client] = results.FetchInt(1);
-		g_fStatistics_Global_CreditsTimer[client] = results.FetchFloat(2);
+		g_Stats[client][DATA_GLOBAL].credits = results.FetchInt(0);
+		g_Stats[client][DATA_GLOBAL].credits_earned = results.FetchInt(1);
+		g_Stats[client][DATA_GLOBAL].credits_timer = results.FetchFloat(2);
 		g_Stats[client][DATA_GLOBAL].kills = results.FetchInt(3);
 		g_Stats[client][DATA_GLOBAL].deaths = results.FetchInt(4);
 		g_Stats[client][DATA_GLOBAL].assists = results.FetchInt(5);
 		g_Stats[client][DATA_GLOBAL].headshots = results.FetchInt(6);
-		g_fStatistics_Global_Points[client] = results.FetchFloat(7);
-		g_iStatistics_Global_Longest_Killstreak[client] = results.FetchInt(8);
+		g_Stats[client][DATA_GLOBAL].points = results.FetchFloat(7);
+		g_Stats[client][DATA_GLOBAL].longest_killstreak = results.FetchInt(8);
 		g_Stats[client][DATA_GLOBAL].hits = results.FetchInt(9);
 		g_Stats[client][DATA_GLOBAL].shots = results.FetchInt(10);
 		g_Stats[client][DATA_GLOBAL].kdr = results.FetchFloat(11);
 		g_Stats[client][DATA_GLOBAL].accuracy = results.FetchFloat(12);
-		g_fStatistics_Global_Playtime[client] = results.FetchFloat(13);
-		g_iStatistics_Global_FirstCreated[client] = results.FetchInt(14);
+		g_Stats[client][DATA_GLOBAL].playtime = results.FetchFloat(13);
+		g_Stats[client][DATA_GLOBAL].first_created = results.FetchInt(14);
 
 		if (results.FetchInt(15) == 0)
 		{
@@ -1183,12 +1174,12 @@ public void TQuery_OnGlobalUpdate(Database db, DBResultSet results, const char[]
 	if (results.AffectedRows == 1)
 	{
 		int time = GetTime();
-		g_iStatistics_Global_FirstCreated[client] = time;
+		g_Stats[client][DATA_GLOBAL].first_created = time;
 	}
 
 	if (g_Database_Server != null && g_bActiveSeason)
 	{
-		if (!g_IsDataLoaded[client][DATA_SEASONAL])
+		if (!g_IsDataLoaded[client][DATA_SEASON])
 		{
 			char sTable[MAX_TABLE_SIZE];
 			GetTableString_Season(sTable, sizeof(sTable));
@@ -1206,7 +1197,7 @@ public void TQuery_OnGlobalUpdate(Database db, DBResultSet results, const char[]
 			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
 			g_Database_Server.Query(TQuery_PullClientSeasonCache, sQuery, data);
 		}
-		else if (!g_IsDataLoaded[client][DATA_MAPBASED])
+		else if (!g_IsDataLoaded[client][DATA_MAP])
 		{
 			char sTable[MAX_TABLE_SIZE];
 			GetTableString_Maps(sTable, sizeof(sTable));
@@ -1266,30 +1257,30 @@ public void TQuery_PullClientSeasonData(Database db, DBResultSet results, const 
 
 	if (results.FetchRow())
 	{
-		g_Stats[client][DATA_SEASONAL].kills = results.FetchInt(0);
-		g_Stats[client][DATA_SEASONAL].deaths = results.FetchInt(1);
-		g_Stats[client][DATA_SEASONAL].assists = results.FetchInt(2);
-		g_Stats[client][DATA_SEASONAL].headshots = results.FetchInt(3);
-		g_fStatistics_Seasonal_Points[client] = results.FetchFloat(4);
-		g_iStatistics_Seasonal_Longest_Killstreak[client] = results.FetchInt(5);
-		g_Stats[client][DATA_SEASONAL].hits = results.FetchInt(6);
-		g_Stats[client][DATA_SEASONAL].shots = results.FetchInt(7);
-		g_Stats[client][DATA_SEASONAL].kdr = results.FetchFloat(8);
-		g_Stats[client][DATA_SEASONAL].accuracy = results.FetchFloat(9);
-		g_fStatistics_Seasonal_Playtime[client] = results.FetchFloat(10);
+		g_Stats[client][DATA_SEASON].kills = results.FetchInt(0);
+		g_Stats[client][DATA_SEASON].deaths = results.FetchInt(1);
+		g_Stats[client][DATA_SEASON].assists = results.FetchInt(2);
+		g_Stats[client][DATA_SEASON].headshots = results.FetchInt(3);
+		g_Stats[client][DATA_SEASON].points = results.FetchFloat(4);
+		g_Stats[client][DATA_SEASON].longest_killstreak = results.FetchInt(5);
+		g_Stats[client][DATA_SEASON].hits = results.FetchInt(6);
+		g_Stats[client][DATA_SEASON].shots = results.FetchInt(7);
+		g_Stats[client][DATA_SEASON].kdr = results.FetchFloat(8);
+		g_Stats[client][DATA_SEASON].accuracy = results.FetchFloat(9);
+		g_Stats[client][DATA_SEASON].playtime = results.FetchFloat(10);
 
 		char sWeaponsData[WEAPON_STATISTICS_SIZE];
 		results.FetchString(11, sWeaponsData, sizeof(sWeaponsData));
 
 		if (strlen(sWeaponsData) > 0)
 		{
-			g_hStatistics_Seasonal_WeaponsStatistics[client] = json_decode(sWeaponsData);
+			g_Stats[client][DATA_SEASON].weapons = json_decode(sWeaponsData);
 		}
 
-		g_iStatistics_Seasonal_LastUpdated[client] = results.FetchInt(12);
+		g_Stats[client][DATA_SEASON].last_updated = results.FetchInt(12);
 
 		StringMap overlay_data;
-		g_iCacheData_Tier[client] = CalculateTier(RoundToFloor(g_fStatistics_Seasonal_Points[client]), overlay_data);
+		g_iCacheData_Tier[client] = CalculateTier(RoundToFloor(g_Stats[client][DATA_SEASON].points), overlay_data);
 
 		if (overlay_data != null)
 		{
@@ -1307,7 +1298,7 @@ public void TQuery_PullClientSeasonData(Database db, DBResultSet results, const 
 			g_fCacheData_PointsLoss[client] = StringToFloat(sPointsPerDeath);
 		}
 
-		g_IsDataLoaded[client][DATA_SEASONAL] = true;
+		g_IsDataLoaded[client][DATA_SEASON] = true;
 		g_iLoadedStats[client]++;
 	}
 	else
@@ -1328,7 +1319,7 @@ public void TQuery_PullClientSeasonData(Database db, DBResultSet results, const 
 			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
 			g_Database_Server.Query(TQuery_PullClientSeasonCache, sQuery, data);
 		}
-		else if (!g_IsDataLoaded[client][DATA_MAPBASED])
+		else if (!g_IsDataLoaded[client][DATA_MAP])
 		{
 			char sTable[MAX_TABLE_SIZE];
 			GetTableString_Maps(sTable, sizeof(sTable));
@@ -1368,7 +1359,7 @@ public void TQuery_PullClientSeasonCache(Database db, DBResultSet results, const
 		LogMessage("%s - cannot fetch seasonal statistics (2).", name);
 	}
 
-	if (g_Database_Server != null && g_bActiveSeason && !g_IsDataLoaded[client][DATA_MAPBASED])
+	if (g_Database_Server != null && g_bActiveSeason && !g_IsDataLoaded[client][DATA_MAP])
 	{
 		char sTable[MAX_TABLE_SIZE];
 		GetTableString_Maps(sTable, sizeof(sTable));
@@ -1390,18 +1381,18 @@ public void TQuery_PullClientMapBasedData(Database db, DBResultSet results, cons
 
 	if (results.FetchRow())
 	{
-		g_Stats[client][DATA_MAPBASED].kills = results.FetchInt(0);
-		g_Stats[client][DATA_MAPBASED].deaths = results.FetchInt(1);
-		g_Stats[client][DATA_MAPBASED].assists = results.FetchInt(2);
-		g_Stats[client][DATA_MAPBASED].headshots = results.FetchInt(3);
-		g_fStatistics_Mapbased_Points[client] = results.FetchFloat(4);
-		g_iStatistics_Mapbased_Longest_Killstreak[client] = results.FetchInt(5);
-		g_Stats[client][DATA_MAPBASED].hits = results.FetchInt(6);
-		g_Stats[client][DATA_MAPBASED].shots = results.FetchInt(7);
-		g_Stats[client][DATA_MAPBASED].kdr = results.FetchFloat(8);
-		g_Stats[client][DATA_MAPBASED].accuracy = results.FetchFloat(9);
+		g_Stats[client][DATA_MAP].kills = results.FetchInt(0);
+		g_Stats[client][DATA_MAP].deaths = results.FetchInt(1);
+		g_Stats[client][DATA_MAP].assists = results.FetchInt(2);
+		g_Stats[client][DATA_MAP].headshots = results.FetchInt(3);
+		g_Stats[client][DATA_MAP].points = results.FetchFloat(4);
+		g_Stats[client][DATA_MAP].longest_killstreak = results.FetchInt(5);
+		g_Stats[client][DATA_MAP].hits = results.FetchInt(6);
+		g_Stats[client][DATA_MAP].shots = results.FetchInt(7);
+		g_Stats[client][DATA_MAP].kdr = results.FetchFloat(8);
+		g_Stats[client][DATA_MAP].accuracy = results.FetchFloat(9);
 
-		g_IsDataLoaded[client][DATA_MAPBASED] = true;
+		g_IsDataLoaded[client][DATA_MAP] = true;
 		g_iLoadedStats[client]++;
 	}
 	else
@@ -1426,7 +1417,7 @@ void ValidateClientServerData(int client)
 	int serial = GetClientSerial(client);
 
 	char sWeaponsData[WEAPON_STATISTICS_SIZE];
-	g_hStatistics_Seasonal_WeaponsStatistics[client].Encode(sWeaponsData, sizeof(sWeaponsData));
+	g_Stats[client][DATA_SEASON].weapons.Encode(sWeaponsData, sizeof(sWeaponsData));
 
 	int iTime = GetTime();
 
@@ -1462,10 +1453,10 @@ public void TQuery_SyncClient_Season(Database db, DBResultSet results, const cha
 	int client;
 	if ((client = GetClientFromSerial(serial)) > 0)
 	{
-		g_iStatistics_Seasonal_LastUpdated[client] = iTime;
+		g_Stats[client][DATA_SEASON].last_updated = iTime;
 
 		StringMap overlay_data;
-		g_iCacheData_Tier[client] = CalculateTier(RoundToFloor(g_fStatistics_Seasonal_Points[client]), overlay_data);
+		g_iCacheData_Tier[client] = CalculateTier(RoundToFloor(g_Stats[client][DATA_SEASON].points), overlay_data);
 
 		if (overlay_data != null)
 		{
@@ -1539,19 +1530,19 @@ public void OnClientDisconnect(int client)
 public void OnClientDisconnect_Post(int client)
 {
 	g_Stats[client][DATA_GLOBAL].Clear();
-	g_Stats[client][DATA_SEASONAL].Clear();
-	g_Stats[client][DATA_MAPBASED].Clear();
-	g_Stats[client][DATA_SESSIONBASED].Clear();
+	g_Stats[client][DATA_SEASON].Clear();
+	g_Stats[client][DATA_MAP].Clear();
+	g_Stats[client][DATA_SESSION].Clear();
 
 	g_iCooldown[client] = -1;
 	StopTimer(g_hTimer_Playtime[client]);
 
 	delete g_StatisticsMenu[client];
 
-	if (g_hStatistics_Seasonal_WeaponsStatistics[client] != null)
+	if (g_Stats[client][DATA_SEASON].weapons != null)
 	{
-		g_hStatistics_Seasonal_WeaponsStatistics[client].Cleanup();
-		delete g_hStatistics_Seasonal_WeaponsStatistics[client];
+		g_Stats[client][DATA_SEASON].weapons.Cleanup();
+		delete g_Stats[client][DATA_SEASON].weapons;
 	}
 
 	g_WinPanel[client].Delete();
@@ -1578,15 +1569,15 @@ void SaveClientGlobalData(int client, Transaction trans = null)
 	g_Database_Global.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `credits` = '%i', `credits_earned` = '%i', `credits_timer` = '%f', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f', `last_updated` = '%i' WHERE `accountid` = '%i';",
 		sTable,
 		sEscapedName,
-		g_iStatistics_Global_Credits[client],
-		g_iStatistics_Global_CreditsEarned[client],
-		g_fStatistics_Global_CreditsTimer[client],
+		g_Stats[client][DATA_GLOBAL].credits,
+		g_Stats[client][DATA_GLOBAL].credits_earned,
+		g_Stats[client][DATA_GLOBAL].credits_timer,
 		g_Stats[client][DATA_GLOBAL].kills,
 		g_Stats[client][DATA_GLOBAL].deaths,
 		g_Stats[client][DATA_GLOBAL].assists,
 		g_Stats[client][DATA_GLOBAL].headshots,
-		g_fStatistics_Global_Points[client],
-		g_iStatistics_Global_Longest_Killstreak[client],
+		g_Stats[client][DATA_GLOBAL].points,
+		g_Stats[client][DATA_GLOBAL].longest_killstreak,
 		g_Stats[client][DATA_GLOBAL].hits,
 		g_Stats[client][DATA_GLOBAL].shots,
 		g_Stats[client][DATA_GLOBAL].kdr,
@@ -1608,7 +1599,7 @@ public void TQuery_OnSaveGlobalStats(Database db, DBResultSet results, const cha
 
 void SaveClientServerData(int client, Transaction trans = null)
 {
-	if (g_iLoadedStats[client] < 4 || !g_IsDataLoaded[client][DATA_SEASONAL])
+	if (g_iLoadedStats[client] < 4 || !g_IsDataLoaded[client][DATA_SEASON])
 	{
 		return;
 	}
@@ -1621,9 +1612,9 @@ void SaveClientServerData(int client, Transaction trans = null)
 	g_Database_Server.Escape(sName, sEscapedName, sizeof(sEscapedName));
 
 	char sWeaponsStatistics[WEAPON_STATISTICS_SIZE];
-	if (g_hStatistics_Seasonal_WeaponsStatistics[client] != null)
+	if (g_Stats[client][DATA_SEASON].weapons != null)
 	{
-		g_hStatistics_Seasonal_WeaponsStatistics[client].Encode(sWeaponsStatistics, sizeof(sWeaponsStatistics));
+		g_Stats[client][DATA_SEASON].weapons.Encode(sWeaponsStatistics, sizeof(sWeaponsStatistics));
 		Format(sWeaponsStatistics, sizeof(sWeaponsStatistics), ", `weapons_statistics` = '%s'", sWeaponsStatistics);
 	}
 	LogMessage("----------------------client: %N", client);
@@ -1639,16 +1630,16 @@ void SaveClientServerData(int client, Transaction trans = null)
 	Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f'%s, `last_updated` = '%i' WHERE `accountid` = '%i';",
 		sTable,
 		sEscapedName,
-		g_Stats[client][DATA_SEASONAL].kills,
-		g_Stats[client][DATA_SEASONAL].deaths,
-		g_Stats[client][DATA_SEASONAL].assists,
-		g_Stats[client][DATA_SEASONAL].headshots,
-		g_fStatistics_Seasonal_Points[client],
-		g_iStatistics_Seasonal_Longest_Killstreak[client],
-		g_Stats[client][DATA_SEASONAL].hits,
-		g_Stats[client][DATA_SEASONAL].shots,
-		g_Stats[client][DATA_SEASONAL].kdr,
-		g_Stats[client][DATA_SEASONAL].accuracy,
+		g_Stats[client][DATA_SEASON].kills,
+		g_Stats[client][DATA_SEASON].deaths,
+		g_Stats[client][DATA_SEASON].assists,
+		g_Stats[client][DATA_SEASON].headshots,
+		g_Stats[client][DATA_SEASON].points,
+		g_Stats[client][DATA_SEASON].longest_killstreak,
+		g_Stats[client][DATA_SEASON].hits,
+		g_Stats[client][DATA_SEASON].shots,
+		g_Stats[client][DATA_SEASON].kdr,
+		g_Stats[client][DATA_SEASON].accuracy,
 		strlen(sWeaponsStatistics) > 0 ? sWeaponsStatistics : "",
 		time,
 		iAccountID);
@@ -1662,16 +1653,16 @@ void SaveClientServerData(int client, Transaction trans = null)
 	Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f', `last_updated` = '%i' WHERE `accountid` = '%i' AND `map` = '%s';",
 		sTable,
 		sEscapedName,
-		g_Stats[client][DATA_MAPBASED].kills,
-		g_Stats[client][DATA_MAPBASED].deaths,
-		g_Stats[client][DATA_MAPBASED].assists,
-		g_Stats[client][DATA_MAPBASED].headshots,
-		g_fStatistics_Mapbased_Points[client],
-		g_iStatistics_Mapbased_Longest_Killstreak[client],
-		g_Stats[client][DATA_MAPBASED].hits,
-		g_Stats[client][DATA_MAPBASED].shots,
-		g_Stats[client][DATA_MAPBASED].kdr,
-		g_Stats[client][DATA_MAPBASED].accuracy,
+		g_Stats[client][DATA_MAP].kills,
+		g_Stats[client][DATA_MAP].deaths,
+		g_Stats[client][DATA_MAP].assists,
+		g_Stats[client][DATA_MAP].headshots,
+		g_Stats[client][DATA_MAP].points,
+		g_Stats[client][DATA_MAP].longest_killstreak,
+		g_Stats[client][DATA_MAP].hits,
+		g_Stats[client][DATA_MAP].shots,
+		g_Stats[client][DATA_MAP].kdr,
+		g_Stats[client][DATA_MAP].accuracy,
 		time,
 		iAccountID,
 		g_sCurrentMap);
@@ -1716,18 +1707,18 @@ void SaveClientSessionData(int client)
 	trie.SetString("SteamID3", g_sCacheData_SteamID3[client]);
 	trie.SetString("SteamID64", g_sCacheData_SteamID64[client]);
 
-	trie.SetValue("Kills", g_Stats[client][DATA_SESSIONBASED].kills);
-	trie.SetValue("Deaths", g_Stats[client][DATA_SESSIONBASED].deaths);
-	trie.SetValue("Assists", g_Stats[client][DATA_SESSIONBASED].assists);
-	trie.SetValue("Headshots", g_Stats[client][DATA_SESSIONBASED].headshots);
-	trie.SetValue("Hits", g_Stats[client][DATA_SESSIONBASED].hits);
-	trie.SetValue("Shots", g_Stats[client][DATA_SESSIONBASED].shots);
-	trie.SetValue("KDR", g_Stats[client][DATA_SESSIONBASED].kdr);
-	trie.SetValue("Accuracy", g_Stats[client][DATA_SESSIONBASED].accuracy);
-	trie.SetValue("PointsGained", g_fStatistics_Sessionbased_PointsGained[client]);
-	trie.SetValue("PointsLost", g_fStatistics_Sessionbased_PointsLost[client]);
-	trie.SetValue("RanksGained", g_iStatistics_Sessionbased_RanksGained[client]);
-	trie.SetValue("RanksLost", g_iStatistics_Sessionbased_RanksLost[client]);
+	trie.SetValue("Kills", g_Stats[client][DATA_SESSION].kills);
+	trie.SetValue("Deaths", g_Stats[client][DATA_SESSION].deaths);
+	trie.SetValue("Assists", g_Stats[client][DATA_SESSION].assists);
+	trie.SetValue("Headshots", g_Stats[client][DATA_SESSION].headshots);
+	trie.SetValue("Hits", g_Stats[client][DATA_SESSION].hits);
+	trie.SetValue("Shots", g_Stats[client][DATA_SESSION].shots);
+	trie.SetValue("KDR", g_Stats[client][DATA_SESSION].kdr);
+	trie.SetValue("Accuracy", g_Stats[client][DATA_SESSION].accuracy);
+	trie.SetValue("PointsGained", g_Stats[client][DATA_SESSION].points_gained);
+	trie.SetValue("PointsLost", g_Stats[client][DATA_SESSION].points_lost);
+	trie.SetValue("RanksGained", g_Stats[client][DATA_SESSION].ranks_gained);
+	trie.SetValue("RanksLost", g_Stats[client][DATA_SESSION].ranks_lost);
 
 	g_SessionCache.SetValue(sAccountID, trie);
 	g_SessionIDs.Push(iAccountID);
@@ -1736,9 +1727,9 @@ void SaveClientSessionData(int client)
 void CalculateAccuracyStatsForPlayer(int client, int iGlobalShots, int iSeasonalShots, int iMapbasedShots, int iSessionbasedShots)
 {
 	g_Stats[client][DATA_GLOBAL].accuracy = CalculateAccuracy(g_Stats[client][DATA_GLOBAL].hits, iGlobalShots);
-	g_Stats[client][DATA_SEASONAL].accuracy = CalculateAccuracy(g_Stats[client][DATA_SEASONAL].hits, iSeasonalShots);
-	g_Stats[client][DATA_MAPBASED].accuracy = CalculateAccuracy(g_Stats[client][DATA_MAPBASED].hits, iMapbasedShots);
-	g_Stats[client][DATA_SESSIONBASED].accuracy = CalculateAccuracy(g_Stats[client][DATA_SESSIONBASED].hits, iSessionbasedShots);
+	g_Stats[client][DATA_SEASON].accuracy = CalculateAccuracy(g_Stats[client][DATA_SEASON].hits, iSeasonalShots);
+	g_Stats[client][DATA_MAP].accuracy = CalculateAccuracy(g_Stats[client][DATA_MAP].hits, iMapbasedShots);
+	g_Stats[client][DATA_SESSION].accuracy = CalculateAccuracy(g_Stats[client][DATA_SESSION].hits, iSessionbasedShots);
 }
 
 public void Player_OnTakeDamageAlivePost(int victim, int attacker, int inflictor, float damage, int damagetype)
@@ -1778,15 +1769,15 @@ public void Player_OnTakeDamageAlivePost(int victim, int attacker, int inflictor
 				g_bCountFirstHit[attacker] = false;
 
 				g_Stats[attacker][DATA_GLOBAL].hits++;
-				g_Stats[attacker][DATA_SEASONAL].hits++;
-				g_Stats[attacker][DATA_MAPBASED].hits++;
-				g_Stats[attacker][DATA_SESSIONBASED].hits++;
+				g_Stats[attacker][DATA_SEASON].hits++;
+				g_Stats[attacker][DATA_MAP].hits++;
+				g_Stats[attacker][DATA_SESSION].hits++;
 
 				CalculateAccuracyStatsForPlayer(attacker,
 					g_Stats[attacker][DATA_GLOBAL].shots,
-					g_Stats[attacker][DATA_SEASONAL].shots,
-					g_Stats[attacker][DATA_MAPBASED].shots,
-					g_Stats[attacker][DATA_SESSIONBASED].shots);
+					g_Stats[attacker][DATA_SEASON].shots,
+					g_Stats[attacker][DATA_MAP].shots,
+					g_Stats[attacker][DATA_SESSION].shots);
 
 				IncrementWeaponDataValue(attacker, sWeapon, "hits");
 			}
@@ -1794,15 +1785,15 @@ public void Player_OnTakeDamageAlivePost(int victim, int attacker, int inflictor
 		else
 		{
 			g_Stats[attacker][DATA_GLOBAL].hits++;
-			g_Stats[attacker][DATA_SEASONAL].hits++;
-			g_Stats[attacker][DATA_MAPBASED].hits++;
-			g_Stats[attacker][DATA_SESSIONBASED].hits++;
+			g_Stats[attacker][DATA_SEASON].hits++;
+			g_Stats[attacker][DATA_MAP].hits++;
+			g_Stats[attacker][DATA_SESSION].hits++;
 
 			CalculateAccuracyStatsForPlayer(attacker,
 				g_Stats[attacker][DATA_GLOBAL].shots,
-				g_Stats[attacker][DATA_SEASONAL].shots,
-				g_Stats[attacker][DATA_MAPBASED].shots,
-				g_Stats[attacker][DATA_SESSIONBASED].shots);
+				g_Stats[attacker][DATA_SEASON].shots,
+				g_Stats[attacker][DATA_MAP].shots,
+				g_Stats[attacker][DATA_SESSION].shots);
 
 			IncrementWeaponDataValue(attacker, sWeapon, "hits");
 		}
@@ -1838,21 +1829,21 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		g_Stats[client][DATA_GLOBAL].deaths++;
 		g_Stats[client][DATA_GLOBAL].kdr = CalculateKDR(g_Stats[client][DATA_GLOBAL].kills, g_Stats[client][DATA_GLOBAL].deaths);
 
-		g_Stats[client][DATA_SEASONAL].deaths++;
-		g_Stats[client][DATA_SEASONAL].kdr = CalculateKDR(g_Stats[client][DATA_SEASONAL].kills, g_Stats[client][DATA_SEASONAL].deaths);
+		g_Stats[client][DATA_SEASON].deaths++;
+		g_Stats[client][DATA_SEASON].kdr = CalculateKDR(g_Stats[client][DATA_SEASON].kills, g_Stats[client][DATA_SEASON].deaths);
 
-		g_Stats[client][DATA_MAPBASED].deaths++;
-		g_Stats[client][DATA_MAPBASED].kdr = CalculateKDR(g_Stats[client][DATA_MAPBASED].kills, g_Stats[client][DATA_MAPBASED].deaths);
+		g_Stats[client][DATA_MAP].deaths++;
+		g_Stats[client][DATA_MAP].kdr = CalculateKDR(g_Stats[client][DATA_MAP].kills, g_Stats[client][DATA_MAP].deaths);
 
-		g_Stats[client][DATA_SESSIONBASED].deaths++;
-		g_Stats[client][DATA_SESSIONBASED].kdr = CalculateKDR(g_Stats[client][DATA_SESSIONBASED].kills, g_Stats[client][DATA_SESSIONBASED].deaths);
+		g_Stats[client][DATA_SESSION].deaths++;
+		g_Stats[client][DATA_SESSION].kdr = CalculateKDR(g_Stats[client][DATA_SESSION].kills, g_Stats[client][DATA_SESSION].deaths);
 
 		if (client != attacker || convar_LosePointsOnSuicide.BoolValue)
 		{
-			g_fStatistics_Global_Points[client] -= g_fCacheData_PointsLoss[client];
-			g_fStatistics_Seasonal_Points[client] -= g_fCacheData_PointsLoss[client];
-			g_fStatistics_Mapbased_Points[client] -= g_fCacheData_PointsLoss[client];
-			g_fStatistics_Sessionbased_PointsLost[client] += g_fCacheData_PointsLoss[client];
+			g_Stats[client][DATA_GLOBAL].points -= g_fCacheData_PointsLoss[client];
+			g_Stats[client][DATA_SEASON].points -= g_fCacheData_PointsLoss[client];
+			g_Stats[client][DATA_MAP].points -= g_fCacheData_PointsLoss[client];
+			g_Stats[client][DATA_SESSION].points += g_fCacheData_PointsLoss[client];
 
 			if (client != attacker)
 				CPrintToChat(client, "%T", "kill points loss", client, RoundToFloor(g_fCacheData_PointsLoss[client]), attacker);
@@ -1894,22 +1885,22 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		else if (((g_bFrsWeapons && !Furious_Weapons_IsDropshotKill(attacker) || !g_bFrsWeapons) && (convar_Status.BoolValue && g_bRanked)))
 			CPrintToChat(attacker, "%T", "kill points gain", attacker, RoundToFloor(fPointsGain), client);
 
-		g_fStatistics_Global_Points[attacker] += fPointsGain + (g_bRampage[attacker] ? convar_Rampage_Points.IntValue : 0);
+		g_Stats[attacker][DATA_GLOBAL].points += fPointsGain + (g_bRampage[attacker] ? convar_Rampage_Points.IntValue : 0);
 
-		g_Stats[attacker][DATA_SEASONAL].kills++;
-		g_Stats[attacker][DATA_SEASONAL].kdr = CalculateKDR(g_Stats[attacker][DATA_SEASONAL].kills, g_Stats[attacker][DATA_SEASONAL].deaths);
-		g_fStatistics_Seasonal_Points[attacker] += fPointsGain + (g_bRampage[attacker] ? convar_Rampage_Points.IntValue : 0);
+		g_Stats[attacker][DATA_SEASON].kills++;
+		g_Stats[attacker][DATA_SEASON].kdr = CalculateKDR(g_Stats[attacker][DATA_SEASON].kills, g_Stats[attacker][DATA_SEASON].deaths);
+		g_Stats[attacker][DATA_SEASON].points += fPointsGain + (g_bRampage[attacker] ? convar_Rampage_Points.IntValue : 0);
 
-		g_Stats[attacker][DATA_MAPBASED].kills++;
-		g_Stats[attacker][DATA_MAPBASED].kdr = CalculateKDR(g_Stats[attacker][DATA_MAPBASED].kills, g_Stats[attacker][DATA_MAPBASED].deaths);
-		g_fStatistics_Mapbased_Points[attacker] += fPointsGain + (g_bRampage[attacker] ? convar_Rampage_Points.IntValue : 0);
+		g_Stats[attacker][DATA_MAP].kills++;
+		g_Stats[attacker][DATA_MAP].kdr = CalculateKDR(g_Stats[attacker][DATA_MAP].kills, g_Stats[attacker][DATA_MAP].deaths);
+		g_Stats[attacker][DATA_MAP].points += fPointsGain + (g_bRampage[attacker] ? convar_Rampage_Points.IntValue : 0);
 
-		g_Stats[attacker][DATA_SESSIONBASED].kills++;
-		g_Stats[attacker][DATA_SESSIONBASED].kdr = CalculateKDR(g_Stats[attacker][DATA_SESSIONBASED].kills, g_Stats[attacker][DATA_SESSIONBASED].deaths);
-		g_fStatistics_Sessionbased_PointsGained[attacker] += fPointsGain + (g_bRampage[attacker] ? convar_Rampage_Points.IntValue : 0);
+		g_Stats[attacker][DATA_SESSION].kills++;
+		g_Stats[attacker][DATA_SESSION].kdr = CalculateKDR(g_Stats[attacker][DATA_SESSION].kills, g_Stats[attacker][DATA_SESSION].deaths);
+		g_Stats[attacker][DATA_SESSION].points_gained += fPointsGain + (g_bRampage[attacker] ? convar_Rampage_Points.IntValue : 0);
 
-		g_iStatistics_Global_Credits[attacker] += RoundToFloor(fPointsGain);
-		g_iStatistics_Global_CreditsEarned[attacker] += RoundToFloor(fPointsGain);
+		g_Stats[attacker][DATA_GLOBAL].credits += RoundToFloor(fPointsGain);
+		g_Stats[attacker][DATA_GLOBAL].credits_earned += RoundToFloor(fPointsGain);
 
 		if (GetUserFlagBits(attacker) & VIP_FLAGS) {
 			static ConVar convar_ExtraCredits = null;
@@ -1920,8 +1911,8 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
 			int extra = convar_ExtraCredits.IntValue;
 
-			g_iStatistics_Global_Credits[attacker] += extra;
-			g_iStatistics_Global_CreditsEarned[attacker] += extra;
+			g_Stats[attacker][DATA_GLOBAL].credits += extra;
+			g_Stats[attacker][DATA_GLOBAL].credits_earned += extra;
 
 			CPrintToChat(attacker, "%T", "vip credits added", attacker, RoundToFloor(fPointsGain), extra);
 		} else {
@@ -1930,21 +1921,21 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
 		g_iLocalKillstreak[attacker]++;
 
-		if (g_iLocalKillstreak[attacker] > g_iStatistics_Global_Longest_Killstreak[attacker])
-			g_iStatistics_Global_Longest_Killstreak[attacker] = g_iLocalKillstreak[attacker];
+		if (g_iLocalKillstreak[attacker] > g_Stats[attacker][DATA_GLOBAL].longest_killstreak)
+			g_Stats[attacker][DATA_GLOBAL].longest_killstreak = g_iLocalKillstreak[attacker];
 
-		if (g_iLocalKillstreak[attacker] > g_iStatistics_Seasonal_Longest_Killstreak[attacker])
-			g_iStatistics_Seasonal_Longest_Killstreak[attacker] = g_iLocalKillstreak[attacker];
+		if (g_iLocalKillstreak[attacker] > g_Stats[attacker][DATA_SEASON].longest_killstreak)
+			g_Stats[attacker][DATA_SEASON].longest_killstreak = g_iLocalKillstreak[attacker];
 
-		if (g_iLocalKillstreak[attacker] > g_iStatistics_Mapbased_Longest_Killstreak[attacker])
-			g_iStatistics_Mapbased_Longest_Killstreak[attacker] = g_iLocalKillstreak[attacker];
+		if (g_iLocalKillstreak[attacker] > g_Stats[attacker][DATA_MAP].longest_killstreak)
+			g_Stats[attacker][DATA_MAP].longest_killstreak = g_iLocalKillstreak[attacker];
 
 		if (event.GetBool("headshot"))
 		{
 			g_Stats[attacker][DATA_GLOBAL].headshots++;
-			g_Stats[attacker][DATA_SEASONAL].headshots++;
-			g_Stats[attacker][DATA_MAPBASED].headshots++;
-			g_Stats[attacker][DATA_SESSIONBASED].headshots++;
+			g_Stats[attacker][DATA_SEASON].headshots++;
+			g_Stats[attacker][DATA_MAP].headshots++;
+			g_Stats[attacker][DATA_SESSION].headshots++;
 		}
 
 		IncrementWeaponDataValue(attacker, sWeapon, "kills");
@@ -1956,16 +1947,16 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	if (assister > 0 && !IsFakeClient(assister) && client != assister)
 	{
 		g_Stats[assister][DATA_GLOBAL].assists++;
-		g_fStatistics_Global_Points[assister] += 1.0;
+		g_Stats[assister][DATA_GLOBAL].points += 1.0;
 
-		g_Stats[assister][DATA_SEASONAL].assists++;
-		g_fStatistics_Seasonal_Points[assister] += 1.0;
+		g_Stats[assister][DATA_SEASON].assists++;
+		g_Stats[assister][DATA_SEASON].points += 1.0;
 
-		g_Stats[assister][DATA_MAPBASED].assists++;
-		g_fStatistics_Mapbased_Points[assister] += 1.0;
+		g_Stats[assister][DATA_MAP].assists++;
+		g_Stats[assister][DATA_MAP].points += 1.0;
 
-		g_Stats[assister][DATA_SESSIONBASED].assists++;
-		g_fStatistics_Sessionbased_PointsGained[assister] += 1.0;
+		g_Stats[assister][DATA_SESSION].assists++;
+		g_Stats[assister][DATA_SESSION].points += 1.0;
 
 		CPrintToChat(assister, "%T", "assist points", assister, client);
 	}
@@ -1993,15 +1984,15 @@ public void OnWeaponFire(Event event, const char[] name, bool dontBroadcast)
 		return;
 
 	g_Stats[client][DATA_GLOBAL].shots++;
-	g_Stats[client][DATA_SEASONAL].shots++;
-	g_Stats[client][DATA_MAPBASED].shots++;
-	g_Stats[client][DATA_SESSIONBASED].shots++;
+	g_Stats[client][DATA_SEASON].shots++;
+	g_Stats[client][DATA_MAP].shots++;
+	g_Stats[client][DATA_SESSION].shots++;
 
 	CalculateAccuracyStatsForPlayer(client,
 		g_Stats[client][DATA_GLOBAL].shots,
-		g_Stats[client][DATA_SEASONAL].shots,
-		g_Stats[client][DATA_MAPBASED].shots,
-		g_Stats[client][DATA_SESSIONBASED].shots);
+		g_Stats[client][DATA_SEASON].shots,
+		g_Stats[client][DATA_MAP].shots,
+		g_Stats[client][DATA_SESSION].shots);
 
 	char sWeapon[64];
 	GetClientWeapon(client, sWeapon, sizeof(sWeapon));
@@ -2014,10 +2005,10 @@ public void OnWeaponFire(Event event, const char[] name, bool dontBroadcast)
 
 void IncrementWeaponDataValue(int client, const char[] sWeapon, const char[] sStat)
 {
-	if (g_hStatistics_Seasonal_WeaponsStatistics[client] == null || strlen(sWeapon) == 0 || strlen(sStat) == 0)
+	if (g_Stats[client][DATA_SEASON].weapons == null || strlen(sWeapon) == 0 || strlen(sStat) == 0)
 		return;
 
-	JSON_Object hWeaponObj = g_hStatistics_Seasonal_WeaponsStatistics[client].GetObject(sWeapon);
+	JSON_Object hWeaponObj = g_Stats[client][DATA_SEASON].weapons.GetObject(sWeapon);
 
 	if (hWeaponObj == null)
 	{
@@ -2026,7 +2017,7 @@ void IncrementWeaponDataValue(int client, const char[] sWeapon, const char[] sSt
 		hWeaponObj.SetInt("hits", 0);
 		hWeaponObj.SetInt("shots", 0);
 
-		g_hStatistics_Seasonal_WeaponsStatistics[client].SetObject(sWeapon, hWeaponObj);
+		g_Stats[client][DATA_SEASON].weapons.SetObject(sWeapon, hWeaponObj);
 	}
 
 	int stat = hWeaponObj.GetInt(sStat);
@@ -2471,17 +2462,17 @@ public void OnParseCountry_Online(Database db, DBResultSet results, const char[]
 	char sName[MAX_NAME_LENGTH];
 	GetClientName(target, sName, sizeof(sName));
 
-	int iLastUpdated = g_iStatistics_Seasonal_LastUpdated[target];
-	int iPoints = RoundToFloor(g_fStatistics_Seasonal_Points[target]);
-	int iKills = g_Stats[target][DATA_SEASONAL].kills;
-	int iDeaths = g_Stats[target][DATA_SEASONAL].deaths;
-	int iAssists = g_Stats[target][DATA_SEASONAL].assists;
-	int iHeadshots = g_Stats[target][DATA_SEASONAL].headshots;
-	float fKDR = g_Stats[target][DATA_SEASONAL].kdr;
-	float fAccuracy = g_Stats[target][DATA_SEASONAL].accuracy;
+	int iLastUpdated = g_Stats[target][DATA_SEASON].last_updated;
+	int iPoints = RoundToFloor(g_Stats[target][DATA_SEASON].points);
+	int iKills = g_Stats[target][DATA_SEASON].kills;
+	int iDeaths = g_Stats[target][DATA_SEASON].deaths;
+	int iAssists = g_Stats[target][DATA_SEASON].assists;
+	int iHeadshots = g_Stats[target][DATA_SEASON].headshots;
+	float fKDR = g_Stats[target][DATA_SEASON].kdr;
+	float fAccuracy = g_Stats[target][DATA_SEASON].accuracy;
 
 	char sWeaponsData[WEAPON_STATISTICS_SIZE];
-	json_encode(g_hStatistics_Seasonal_WeaponsStatistics[target], sWeaponsData, sizeof(sWeaponsData));
+	json_encode(g_Stats[target][DATA_SEASON].weapons, sWeaponsData, sizeof(sWeaponsData));
 
 	int iRank = g_iCacheData_Rank[target];
 
@@ -2582,7 +2573,7 @@ void GenerateStatisticsMenu(int client, int target, const char[] sName, int iAcc
 	char sFirstCreated[128];
 
 	if (target > 0)
-		FormatTime(sFirstCreated, sizeof(sFirstCreated), "%A, %B %d, %Y", g_iStatistics_Global_FirstCreated[target]);
+		FormatTime(sFirstCreated, sizeof(sFirstCreated), "%A, %B %d, %Y", g_Stats[target][DATA_GLOBAL].first_created);
 	else
 		FormatEx(sFirstCreated, sizeof(sFirstCreated), "Not Online");
 
@@ -2593,7 +2584,7 @@ void GenerateStatisticsMenu(int client, int target, const char[] sName, int iAcc
 
 	if (target > 0)
 	{
-		fTime = g_fStatistics_Global_Playtime[target] + GetClientTime(target);
+		fTime = g_Stats[target][DATA_GLOBAL].playtime + GetClientTime(target);
 		ShowStatsMenu(client, target, sName, iAccountID, sSteamID2, sSteamID64, sFirstCreated, sLastUpdated, fTime, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
 	}
 	else
@@ -2755,7 +2746,7 @@ public int MenuHandle_Statistics(Menu menu, MenuAction action, int param1, int p
 				GetMenuString(menu, "country", sCountry, sizeof(sCountry));
 
 				float session = GetClientTime(param1);
-				float season_time = g_fStatistics_Seasonal_Playtime[param1] + session;
+				float season_time = g_Stats[param1][DATA_SEASON].playtime + session;
 
 				char sSeasonTime[128];
 				FormatSeconds(season_time, sSeasonTime, sizeof(sSeasonTime), "%D days %H hours %M minutes");
@@ -2795,7 +2786,7 @@ public int MenuHandle_Statistics(Menu menu, MenuAction action, int param1, int p
 				}
 
 				char sSessionStats[256];
-				Format(sSessionStats, sizeof(sSessionStats), "Session Stats\nRanks Gained: %i\nPoints Gained: %i\nKills: %i | Deaths: %i\nAssists: %i\nKDR: %.2f\nHeadshots: %i\nAccuracy: %.2f", g_iStatistics_Sessionbased_RanksGained[target], RoundToFloor(g_fStatistics_Sessionbased_PointsGained[target]), g_Stats[target][DATA_SESSIONBASED].kills, g_Stats[target][DATA_SESSIONBASED].deaths, g_Stats[target][DATA_SESSIONBASED].assists, g_Stats[target][DATA_SESSIONBASED].kdr, g_Stats[target][DATA_SESSIONBASED].headshots, g_Stats[target][DATA_SESSIONBASED].accuracy);
+				Format(sSessionStats, sizeof(sSessionStats), "Session Stats\nRanks Gained: %i\nPoints Gained: %i\nKills: %i | Deaths: %i\nAssists: %i\nKDR: %.2f\nHeadshots: %i\nAccuracy: %.2f", g_Stats[target][DATA_SESSION].ranks_gained, RoundToFloor(g_Stats[target][DATA_SESSION].points_gained), g_Stats[target][DATA_SESSION].kills, g_Stats[target][DATA_SESSION].deaths, g_Stats[target][DATA_SESSION].assists, g_Stats[target][DATA_SESSION].kdr, g_Stats[target][DATA_SESSION].headshots, g_Stats[target][DATA_SESSION].accuracy);
 
 				FormatEx(sItemDisplay, sizeof(sItemDisplay), "%s", !g_bToggleStatistics[param1] ? "Session Stats" : sSessionStats);
 				return RedrawMenuItem(sItemDisplay);
@@ -3136,7 +3127,7 @@ public Action Command_TimePlayed(int client, int args)
 	if (args == 0)
 	{
 		float session = GetClientTime(client);
-		float total_time = g_fStatistics_Global_Playtime[client] + session;
+		float total_time = g_Stats[client][DATA_GLOBAL].playtime + session;
 
 		char sTotalTime[128];
 		FormatSeconds(total_time, sTotalTime, sizeof(sTotalTime), "%D days %H hours %M minutes");
@@ -3157,7 +3148,7 @@ public Action Command_TimePlayed(int client, int args)
 	if (target > 0)
 	{
 		float session = GetClientTime(target);
-		float season_time = g_fStatistics_Seasonal_Playtime[target] + session;
+		float season_time = g_Stats[target][DATA_SEASON].playtime + session;
 
 		char sSeasonTime[128];
 		FormatSeconds(season_time, sSeasonTime, sizeof(sSeasonTime), "%D days %H hours %M minutes");
@@ -3241,7 +3232,7 @@ public Action Command_OpenWeaponsMenu(int client, int args)
 		GetClientName(client, sName, sizeof(sName));
 
 		char sWeaponsData[WEAPON_STATISTICS_SIZE];
-		g_hStatistics_Seasonal_WeaponsStatistics[client].Encode(sWeaponsData, sizeof(sWeaponsData));
+		g_Stats[client][DATA_SEASON].weapons.Encode(sWeaponsData, sizeof(sWeaponsData));
 
 		DisplayWeaponStats(client, sName, sWeaponsData);
 
@@ -3265,7 +3256,7 @@ public Action Command_OpenWeaponsMenu(int client, int args)
 		GetClientName(target, sName, sizeof(sName));
 
 		char sWeaponsData[WEAPON_STATISTICS_SIZE];
-		g_hStatistics_Seasonal_WeaponsStatistics[target].Encode(sWeaponsData, sizeof(sWeaponsData));
+		g_Stats[target][DATA_SEASON].weapons.Encode(sWeaponsData, sizeof(sWeaponsData));
 
 		DisplayWeaponStats(client, sName, sWeaponsData);
 	}
@@ -3349,13 +3340,10 @@ public Action Command_SwitchToSpectate(int client, int args)
 
 		if (GetAlivePlayers(GetClientTeam(client)) == 1 && g_bActiveSeason)
 		{
-			g_fStatistics_Global_Points[client] -= g_fCacheData_PointsLoss[client];
-
-			g_fStatistics_Seasonal_Points[client] -= g_fCacheData_PointsLoss[client];
-
-			g_fStatistics_Mapbased_Points[client] -= g_fCacheData_PointsLoss[client];
-
-			g_fStatistics_Sessionbased_PointsLost[client] += g_fCacheData_PointsLoss[client];
+			g_Stats[client][DATA_GLOBAL].points -= g_fCacheData_PointsLoss[client];
+			g_Stats[client][DATA_SEASON].points -= g_fCacheData_PointsLoss[client];
+			g_Stats[client][DATA_MAP].points -= g_fCacheData_PointsLoss[client];
+			g_Stats[client][DATA_SESSION].points += g_fCacheData_PointsLoss[client];
 		}
 	}
 
@@ -3532,16 +3520,16 @@ void SaveDeathStatistics(int client)
 	GetTableString_Season(sTable, sizeof(sTable));
 	g_Database_Server.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `deaths` = '%i', `kdr` = '%f' WHERE `accountid` = '%i';",
 		sTable,
-		g_Stats[client][DATA_SEASONAL].deaths,
-		g_Stats[client][DATA_SEASONAL].kdr,
+		g_Stats[client][DATA_SEASON].deaths,
+		g_Stats[client][DATA_SEASON].kdr,
 		iAccountID);
 	trans.AddQuery(sQuery);
 
 	GetTableString_Maps(sTable, sizeof(sTable));
 	g_Database_Server.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `deaths` = '%i', `kdr` = '%f' WHERE `accountid` = '%i';",
 		sTable,
-		g_Stats[client][DATA_MAPBASED].deaths,
-		g_Stats[client][DATA_MAPBASED].kdr,
+		g_Stats[client][DATA_MAP].deaths,
+		g_Stats[client][DATA_MAP].kdr,
 		iAccountID);
 	trans.AddQuery(sQuery);
 
@@ -3573,9 +3561,9 @@ void UpdateClientPositions(int client, bool bOverlay = true)
 
 	g_Database_Server.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `kills` = '%i', `points` = '%f', `kdr` = '%f' WHERE `accountid` = '%i';",
 		sTable,
-		g_Stats[client][DATA_SEASONAL].kills,
-		g_fStatistics_Seasonal_Points[client],
-		g_Stats[client][DATA_SEASONAL].kdr,
+		g_Stats[client][DATA_SEASON].kills,
+		g_Stats[client][DATA_SEASON].points,
+		g_Stats[client][DATA_SEASON].kdr,
 		iAccountID);
 	trans.AddQuery(sQuery);
 
@@ -3624,11 +3612,11 @@ public void Transaction_OnUpdateClientRank_Success(Database db, DataPack data, i
 					LogError("Invalid Overlay data handle for client %N.", client);
 			}
 
-			g_iStatistics_Sessionbased_RanksGained[client] += (g_iCacheData_Rank[client] - iCurrentRank);
+			g_Stats[client][DATA_SESSION].ranks_gained += (g_iCacheData_Rank[client] - iCurrentRank);
 		}
 		else if (iCurrentRank > g_iCacheData_Rank[client])
 		{
-			g_iStatistics_Sessionbased_RanksLost[client] += (iCurrentRank - g_iCacheData_Rank[client]);
+			g_Stats[client][DATA_SESSION].ranks_lost += (iCurrentRank - g_iCacheData_Rank[client]);
 		}
 
 		g_iCacheData_Rank[client] = iCurrentRank;
@@ -4120,9 +4108,9 @@ public Action Command_Next(int client, int args)
 	char sQuery[MAX_QUERY_SIZE];
 	g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT `name`, `points` FROM `%s` WHERE `points` > %f OR (`points` = %f AND `kills` > %d) ORDER BY `points` ASC;",
 		sTable,
-		g_fStatistics_Seasonal_Points[client],
-		g_fStatistics_Seasonal_Points[client],
-		g_Stats[client][DATA_SEASONAL].kills);
+		g_Stats[client][DATA_SEASON].points,
+		g_Stats[client][DATA_SEASON].points,
+		g_Stats[client][DATA_SEASON].kills);
 	g_Database_Server.Query(TQuery_OnGetNextData, sQuery, pack);
 
 	return Plugin_Handled;
@@ -4157,7 +4145,7 @@ public void TQuery_OnGetNextData(Database db, DBResultSet results, const char[] 
 	Panel panel = new Panel();
 	panel.SetTitle(sTitle);
 
-	Format(sDisplay, sizeof(sDisplay), "  %i %i - %N", iRank, RoundFloat(g_fStatistics_Seasonal_Points[client]), client);
+	Format(sDisplay, sizeof(sDisplay), "  %i %i - %N", iRank, RoundFloat(g_Stats[client][DATA_SEASON].points), client);
 
 	panel.DrawText(sDisplay);
 
@@ -4169,7 +4157,7 @@ public void TQuery_OnGetNextData(Database db, DBResultSet results, const char[] 
 
 		float fPoints = results.FetchFloat(1);
 
-		Format(sDisplay, sizeof(sDisplay), "  %i %i +%i %s", --iRank, RoundFloat(fPoints), RoundFloat(fPoints - g_fStatistics_Seasonal_Points[client]), sName);
+		Format(sDisplay, sizeof(sDisplay), "  %i %i +%i %s", --iRank, RoundFloat(fPoints), RoundFloat(fPoints - g_Stats[client][DATA_SEASON].points), sName);
 
 		panel.DrawText(sDisplay);
 	}
@@ -4318,7 +4306,7 @@ public Action Timer_DisplaySpectatorHud(Handle timer, any serial)
 	}
 
 	float fTime = GetClientTime(client);
-	float fTotal = g_fStatistics_Global_Playtime[client] + fTime;
+	float fTotal = g_Stats[client][DATA_GLOBAL].playtime + fTime;
 
 	char sTime[256];
 	FormatSeconds(fTime, sTime, sizeof(sTime), "%Dd %Hh %Mm %Ss");
@@ -4344,7 +4332,7 @@ public Action Timer_DisplaySpectatorHud(Handle timer, any serial)
 	FormatEx(sTag, sizeof(sTag), "<span color='%s'>%s%s</span>", sPrefixColor, sPrefix, sGroup);
 
 	int rank = g_iCacheData_Rank[client], lastKnownRank = g_LastKnownRank[client];
-	float points = g_fStatistics_Seasonal_Points[client], lastKnownPoints = g_LastKnownPoints[client];
+	float points = g_Stats[client][DATA_SEASON].points, lastKnownPoints = g_LastKnownPoints[client];
 
 	char sRank[MAXPLAYERS + 1][128], sPoints[MAXPLAYERS + 1][128];
 
@@ -4444,9 +4432,9 @@ public Action Command_PlaytimeDebug(int client, int args)
 public Action Timer_DisplayPlaytimeDebug(Handle timer, any client)
 {
 	float fTime = GetClientTime(client);
-	float fTotal = g_fStatistics_Global_Playtime[client] + fTime;
+	float fTotal = g_Stats[client][DATA_GLOBAL].playtime + fTime;
 
-	PrintHintText(client, "%.2f + %.2f = %.2f", g_fStatistics_Global_Playtime[client], fTime, fTotal);
+	PrintHintText(client, "%.2f + %.2f = %.2f", g_Stats[client][DATA_GLOBAL].playtime, fTime, fTotal);
 	return Plugin_Continue;
 }
 
@@ -4768,7 +4756,7 @@ public int Native_Server_GetPlaytime(Handle plugin, int numParams)
 	if (client < 1 || client > MaxClients)
 		return 0;
 
-	return view_as<int>(GetClientTime(client) + g_fStatistics_Global_Playtime[client]);
+	return view_as<int>(GetClientTime(client) + g_Stats[client][DATA_GLOBAL].playtime);
 }
 
 public int Native_SetSpecHud(Handle plugin, int numParams)
@@ -4790,8 +4778,8 @@ public int Native_Statistics_AddCredits(Handle plugin, int numParams) {
 	}
 
 	int value = GetNativeCell(2);
-	g_iStatistics_Global_Credits[client] += value;
-	g_iStatistics_Global_CreditsEarned[client] += value;
+	g_Stats[client][DATA_GLOBAL].credits += value;
+	g_Stats[client][DATA_GLOBAL].credits_earned += value;
 
 	if (GetNativeCell(3)) {
 		if (GetUserFlagBits(client) & VIP_FLAGS) {
@@ -4803,8 +4791,8 @@ public int Native_Statistics_AddCredits(Handle plugin, int numParams) {
 
 			int extra = convar_ExtraCredits.IntValue;
 
-			g_iStatistics_Global_Credits[client] += extra;
-			g_iStatistics_Global_CreditsEarned[client] += extra;
+			g_Stats[client][DATA_GLOBAL].credits += extra;
+			g_Stats[client][DATA_GLOBAL].credits_earned += extra;
 
 			CPrintToChat(client, "%T", "vip credits added", client, value, extra);
 		} else {
@@ -4861,7 +4849,7 @@ public int Native_Statistics_GetCredits(Handle plugin, int numParams)
 	if (client < 1 || client > MaxClients)
 		return -1;
 
-	return g_iStatistics_Global_Credits[client];
+	return g_Stats[client][DATA_GLOBAL].credits;
 }
 
 public int Native_Statistics_SetCredits(Handle plugin, int numParams)
@@ -4872,7 +4860,7 @@ public int Native_Statistics_SetCredits(Handle plugin, int numParams)
 		return -1;
 
 	int value = GetNativeCell(2);
-	g_iStatistics_Global_Credits[client] = value;
+	g_Stats[client][DATA_GLOBAL].credits = value;
 
 	if (GetNativeCell(3))
 		CPrintToChat(client, "%T", "credits set", client, value);
@@ -4887,7 +4875,7 @@ public int Native_Statistics_GetCreditsEarned(Handle plugin, int numParams)
 	if (client < 1 || client > MaxClients)
 		return -1;
 
-	return g_iStatistics_Global_CreditsEarned[client];
+	return g_Stats[client][DATA_GLOBAL].credits_earned;
 }
 
 public int Native_Statistics_SetCreditsEarned(Handle plugin, int numParams)
@@ -4897,7 +4885,7 @@ public int Native_Statistics_SetCreditsEarned(Handle plugin, int numParams)
 	if (client < 1 || client > MaxClients)
 		return -1;
 
-	g_iStatistics_Global_CreditsEarned[client] = GetNativeCell(2);
+	g_Stats[client][DATA_GLOBAL].credits_earned = GetNativeCell(2);
 
 	return 1;
 }
@@ -4909,7 +4897,7 @@ public int Native_Statistics_GetCreditsTimer(Handle plugin, int numParams)
 	if (client < 1 || client > MaxClients)
 		return -1;
 
-	return view_as<int>(g_fStatistics_Global_CreditsTimer[client]);
+	return view_as<int>(g_Stats[client][DATA_GLOBAL].credits_timer);
 }
 
 public int Native_Statistics_SetCreditsTimer(Handle plugin, int numParams)
@@ -4919,7 +4907,7 @@ public int Native_Statistics_SetCreditsTimer(Handle plugin, int numParams)
 	if (client < 1 || client > MaxClients)
 		return -1;
 
-	g_fStatistics_Global_CreditsTimer[client] = view_as<float>(GetNativeCell(2));
+	g_Stats[client][DATA_GLOBAL].credits_timer = view_as<float>(GetNativeCell(2));
 
 	return 1;
 }
@@ -4931,7 +4919,7 @@ public int Native_Statistics_AddSeasonalPoints(Handle plugin, int numParams)
 	if (client < 1 || client > MaxClients)
 		return -1;
 
-	g_fStatistics_Seasonal_Points[client] += GetNativeCell(2);
+	g_Stats[client][DATA_SEASON].points += GetNativeCell(2);
 
 	return 1;
 }
@@ -4986,7 +4974,7 @@ public Action Command_ResetRank(int client, int args)
 	if (!convar_Status.BoolValue || client < 1 || !IsClientInGame(client))
 		return Plugin_Handled;
 
-	int iCredits = g_iStatistics_Global_Credits[client];
+	int iCredits = g_Stats[client][DATA_GLOBAL].credits;
 	int iDeduct = convar_ResetRankCredits.IntValue;
 
 	if (iCredits >= iDeduct)
@@ -5010,7 +4998,7 @@ public void Confirmation_ResetRank(int client, ConfirmationResponses response, i
 {
 	if (response == Confirm_Yes)
 	{
-		g_iStatistics_Global_Credits[client] -= deduct;
+		g_Stats[client][DATA_GLOBAL].credits -= deduct;
 
 		ResetSeasonalData(client);
 		CPrintToChat(client, "%T", "reset rank", client, deduct);
@@ -5051,25 +5039,25 @@ public void TQuery_OnResetSeasonalStats(Database db, DBResultSet results, const 
 	int client;
 	if ((client = GetClientFromSerial(data)) > 0)
 	{
-		g_Stats[client][DATA_SEASONAL].kills = 0;
-		g_Stats[client][DATA_SEASONAL].deaths = 0;
-		g_Stats[client][DATA_SEASONAL].assists = 0;
-		g_Stats[client][DATA_SEASONAL].headshots = 0;
-		g_fStatistics_Seasonal_Points[client] = 0.0;
-		g_iStatistics_Seasonal_Longest_Killstreak[client] = 0;
-		g_Stats[client][DATA_SEASONAL].hits = 0;
-		g_Stats[client][DATA_SEASONAL].shots = 0;
-		g_Stats[client][DATA_SEASONAL].kdr = 0.0;
-		g_Stats[client][DATA_SEASONAL].accuracy = 0.0;
-		g_fStatistics_Seasonal_Playtime[client] = 0.0;
+		g_Stats[client][DATA_SEASON].kills = 0;
+		g_Stats[client][DATA_SEASON].deaths = 0;
+		g_Stats[client][DATA_SEASON].assists = 0;
+		g_Stats[client][DATA_SEASON].headshots = 0;
+		g_Stats[client][DATA_SEASON].points = 0.0;
+		g_Stats[client][DATA_SEASON].longest_killstreak = 0;
+		g_Stats[client][DATA_SEASON].hits = 0;
+		g_Stats[client][DATA_SEASON].shots = 0;
+		g_Stats[client][DATA_SEASON].kdr = 0.0;
+		g_Stats[client][DATA_SEASON].accuracy = 0.0;
+		g_Stats[client][DATA_SEASON].playtime = 0.0;
 
-		if (g_hStatistics_Seasonal_WeaponsStatistics[client] != null)
+		if (g_Stats[client][DATA_SEASON].weapons != null)
 		{
-			g_hStatistics_Seasonal_WeaponsStatistics[client].Cleanup();
-			delete g_hStatistics_Seasonal_WeaponsStatistics[client];
+			g_Stats[client][DATA_SEASON].weapons .Cleanup();
+			delete g_Stats[client][DATA_SEASON].weapons;
 		}
 
-		g_hStatistics_Seasonal_WeaponsStatistics[client] = new JSON_Object();
+		g_Stats[client][DATA_SEASON].weapons  = new JSON_Object();
 
 		g_iCacheData_Points[client] = 0;
 		g_iCacheData_Rank[client] = 0;
@@ -5120,7 +5108,7 @@ public void OnClientResourceEntityPostThink(int entity)
 
 		icon = -1;
 
-		GetTierKey(RoundToFloor(g_fStatistics_Seasonal_Points[i]), "icon", sIcon, sizeof(sIcon));
+		GetTierKey(RoundToFloor(g_Stats[i][DATA_SEASON].points), "icon", sIcon, sizeof(sIcon));
 
 		if ((icon = StringToInt(sIcon)) > 0) {
 			SetEntData(entity, g_PersonalDataPublicLevelOffset + (i * 4), icon);
@@ -5679,10 +5667,10 @@ bool GenerateWinPanel(int client, char[] text, int size) {
 	strcopy(sDown, sizeof(sDown), "<img src='https://furious-clan.com/csgo/points-down.png'>");
 
 	//Based on the math, we need to flip positives and negatives.
-	int kills = -(g_WinPanel[client].kills - g_Stats[client][DATA_SEASONAL].kills);
-	int assists = -(g_WinPanel[client].assists - g_Stats[client][DATA_SEASONAL].assists);
+	int kills = -(g_WinPanel[client].kills - g_Stats[client][DATA_SEASON].kills);
+	int assists = -(g_WinPanel[client].assists - g_Stats[client][DATA_SEASON].assists);
 	int position = -(g_WinPanel[client].position - g_iCacheData_Rank[client]);
-	float points = -(g_WinPanel[client].points - g_fStatistics_Seasonal_Points[client]);
+	float points = -(g_WinPanel[client].points - g_Stats[client][DATA_SEASON].points);
 
 	char sKills[256];
 	if (kills > 0) {
