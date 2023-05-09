@@ -3,7 +3,7 @@
 #pragma newdecls required
 
 /*-- Defines --*/
-#define PLUGIN_VERSION "1.3.2"
+#define PLUGIN_VERSION "1.3.3"
 
 #define VIP_FLAGS ADMFLAG_CUSTOM5
 
@@ -40,21 +40,12 @@
 /*-- Furious Includes --*/
 #include <furious/furious-stocks>
 #include <furious/furious-statistics>
-#include <furious/furious-vip>
 
 #undef REQUIRE_PLUGIN
 #include <furious/furious-tags>
 #include <furious/furious-weapons>
-#include <furious/furious-notifications>
+#include <furious/furious-vip>
 #define REQUIRE_PLUGIN
-
-int g_PersonalDataPublicLevelOffset = -1;
-
-int g_iLoadedStats[MAXPLAYERS + 1];
-int g_LoadingTrials[MAXPLAYERS + 1];
-int g_IsDataLoaded[MAXPLAYERS + 1][4];
-int g_HudColorTimes[MAXPLAYERS + 1];
-int g_LastSpectated[MAXPLAYERS + 1];
 
 /*-- ConVars --*/
 ConVar convar_Status;
@@ -111,6 +102,7 @@ Database g_Database_Server;
 
 bool g_bFrsTags;
 bool g_bFrsWeapons;
+bool g_bFrsVIP;
 
 char g_sCurrentMap[MAX_NAME_LENGTH];
 bool g_bLate;
@@ -276,6 +268,14 @@ enum struct WinPanel {
 
 WinPanel g_WinPanel[MAXPLAYERS + 1];
 
+int g_PersonalDataPublicLevelOffset = -1;
+
+int g_iLoadedStats[MAXPLAYERS + 1];
+int g_LoadingTrials[MAXPLAYERS + 1];
+int g_IsDataLoaded[MAXPLAYERS + 1][4];
+int g_HudColorTimes[MAXPLAYERS + 1];
+int g_LastSpectated[MAXPLAYERS + 1];
+
 /*-- Plugin Info --*/
 public Plugin myinfo =
 {
@@ -292,6 +292,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	MarkNativeAsOptional("Furious_Tags_GetHudPrefix");
 	MarkNativeAsOptional("Furious_Tags_GetHudPrefixColor");
 	MarkNativeAsOptional("Furious_Tags_GetHudGroup");
+	MarkNativeAsOptional("Furious_VIP_IsSpecListEnabled");
 
 	RegPluginLibrary("furious_statistics");
 
@@ -474,6 +475,7 @@ public void OnAllPluginsLoaded()
 {
 	g_bFrsTags = LibraryExists("furious_tags");
 	g_bFrsWeapons = LibraryExists("furious_weapons");
+	g_bFrsVIP = LibraryExists("furious_vip");
 }
 
 public void OnLibraryAdded(const char[] name)
@@ -482,6 +484,8 @@ public void OnLibraryAdded(const char[] name)
 		g_bFrsTags = true;
 	else if (StrEqual(name, "furious_weapons"))
 		g_bFrsWeapons = true;
+	else if (StrEqual(name, "furious_vip"))
+		g_bFrsVIP = true;
 }
 
 public void OnLibraryRemoved(const char[] name)
@@ -490,6 +494,8 @@ public void OnLibraryRemoved(const char[] name)
 		g_bFrsTags = false;
 	else if (StrEqual(name, "furious_weapons"))
 		g_bFrsWeapons = false;
+	else if (StrEqual(name, "furious_vip"))
+		g_bFrsVIP = false;
 }
 
 public Action Timer_DisplayNextSeason(Handle timer)
@@ -4318,7 +4324,7 @@ public Action Timer_DisplaySpectatorHud(Handle timer, any serial)
 		}
 	}
 
-	if (specCount > 0 && IsPlayerAlive(client) && Furious_VIP_IsSpecListEnabled(client) && GetUserFlagBits(client) & VIP_FLAGS)
+	if (g_bFrsVIP && specCount > 0 && IsPlayerAlive(client) && Furious_VIP_IsSpecListEnabled(client) && GetUserFlagBits(client) & VIP_FLAGS)
 	{
 		static char buffer[512], name[32];
 		int pos = 0;
