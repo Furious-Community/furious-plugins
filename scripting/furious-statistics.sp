@@ -344,7 +344,9 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("furious.phrases");
 
+
 	AutoExecConfig_SetFile("frs.statistics");
+	AutoExecConfig_CreateConVar("sm_furious_statistics_version", PLUGIN_VERSION, "Version control for this plugin.", FCVAR_DONTRECORD);
 	convar_Status = AutoExecConfig_CreateConVar("sm_furious_statistics_status", "1", "Status of the plugin.\n(1 = on, 0 = off)", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	convar_Config_Ranks = AutoExecConfig_CreateConVar("sm_furious_statistics_config_ranks", "configs/furious/furious_ranks.cfg", "Name of the ranks config to use.", FCVAR_NOTIFY);
 	convar_Config_Tiers = AutoExecConfig_CreateConVar("sm_furious_statistics_config_tiers", "configs/furious/furious_tiers.cfg", "Name of the tiers config to use.", FCVAR_NOTIFY);
