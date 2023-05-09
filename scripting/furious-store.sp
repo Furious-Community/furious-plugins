@@ -78,7 +78,7 @@ Database g_Database;
 char g_sCurrentMap[MAX_NAME_LENGTH];
 bool g_bLate;
 
-bool plugin_resetscore;
+bool g_bFrsResetScore;
 
 Handle g_hTimer_Credits;
 ConVar convar_Skybox;
@@ -219,7 +219,6 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("furious.phrases");
 
-
 	AutoExecConfig_SetFile("frs.store");
 	AutoExecConfig_CreateConVar("sm_furious_store_version", PLUGIN_VERSION, "Version control for this plugin.", FCVAR_DONTRECORD);
 	convar_Status = AutoExecConfig_CreateConVar("sm_furious_store_status", "1", "Status of the plugin.\n(1 = on, 0 = off)", FCVAR_NOTIFY, true, 0.0, true, 1.0);
@@ -319,19 +318,19 @@ public void OnPluginStart()
 
 public void OnAllPluginsLoaded()
 {
-	plugin_resetscore = LibraryExists("furious_resetscore");
+	g_bFrsResetScore = LibraryExists("furious_resetscore");
 }
 
 public void OnLibraryAdded(const char[] name)
 {
 	if (StrEqual(name, "furious_resetscore", false))
-		plugin_resetscore = true;
+		g_bFrsResetScore = true;
 }
 
 public void OnLibraryRemoved(const char[] name)
 {
 	if (StrEqual(name, "furious_resetscore", false))
-		plugin_resetscore = false;
+		g_bFrsResetScore = false;
 }
 
 public Action Timer_Seconds(Handle timer)
@@ -531,15 +530,15 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 	Transaction hTransaction = new Transaction();
 
 	convar_Table_Items.GetString(sTable, sizeof(sTable));
-	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int(12) NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int(12) NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `item_name` varchar(64) NOT NULL DEFAULT '', `item_type` varchar(64) NOT NULL DEFAULT '', `item_description` varchar(256) NOT NULL DEFAULT '', `price` int(12) NOT NULL DEFAULT 0, `charges` int(12) DEFAULT NULL DEFAULT 0, `first_created` int(12) NOT NULL, `last_updated` int(12) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), UNIQUE KEY `item_ident` (`accountid`, `item_name`, `item_type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;", sTable);
+	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `item_name` varchar(64) NOT NULL DEFAULT '', `item_type` varchar(64) NOT NULL DEFAULT '', `item_description` varchar(256) NOT NULL DEFAULT '', `price` int UNSIGNED NOT NULL DEFAULT 0, `charges` int UNSIGNED DEFAULT 0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `item_ident` (`accountid`, `item_name`, `item_type`)) ENGINE=InnoDB;", sTable);
 	hTransaction.AddQuery(sQuery);
 
 	convar_Table_Items_Equipped.GetString(sTable, sizeof(sTable));
-	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int(12) NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int(32) NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `item_type` varchar(64) NOT NULL DEFAULT '', `item_name` varchar(64) NOT NULL DEFAULT '', `data` varchar(8192) NOT NULL DEFAULT 0, `map` varchar(64) NOT NULL DEFAULT '' , `first_created` int(12) NOT NULL, `last_updated` int(12) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), UNIQUE KEY `equipped_ident` (`accountid`, `item_type`, `map`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;", sTable);
+	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `item_type` varchar(64) NOT NULL DEFAULT '', `item_name` varchar(64) NOT NULL DEFAULT '', `data` mediumtext NOT NULL DEFAULT '', `map` varchar(64) NOT NULL DEFAULT '' , `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `equipped_ident` (`accountid`, `item_type`, `map`)) ENGINE=InnoDB;", sTable);
 	hTransaction.AddQuery(sQuery);
 
 	convar_Table_Welcome_Gifts.GetString(sTable, sizeof(sTable));
-	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `steam_account_id` INT(11) UNSIGNED NULL DEFAULT NULL , `welcome_gift_pending` TINYINT(1) UNSIGNED NOT NULL DEFAULT '1' , PRIMARY KEY (`steam_account_id`) USING BTREE) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;", sTable);
+	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `steam_account_id` int UNSIGNED NULL DEFAULT NULL, `welcome_gift_pending` tinyint UNSIGNED NOT NULL DEFAULT '1' , PRIMARY KEY (`steam_account_id`) USING BTREE) ENGINE = InnoDB;", sTable);
 	hTransaction.AddQuery(sQuery);
 
 	g_Database.Execute(hTransaction, INVALID_FUNCTION, SQLTxnFailure_CreateTables);
@@ -1481,7 +1480,7 @@ bool GiveItem(int client, char[] sItemName, const char[] sItemType, const char[]
 		pack.WriteString(sName);
 
 		convar_Table_Items.GetString(sTable, sizeof(sTable));
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `item_name`, `item_type`, `item_description`, `price`, `charges`, `first_created`, `last_updated`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '%s', '%i', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `charges` = '%i';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sItemName2, sItemType, sItemDescription, iPrice, (iCurCharges + iCharges), iTime, iTime, (iCurCharges + iCharges));
+		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `item_name`, `item_type`, `item_description`, `price`, `charges`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '%s', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `charges` = '%i';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sItemName2, sItemType, sItemDescription, iPrice, (iCurCharges + iCharges), iTime, (iCurCharges + iCharges));
 		g_Database.Query(Query_GiveItem, sQuery, pack, DBPrio_Low);
 
 		return true;
@@ -1539,7 +1538,7 @@ bool GiveItemToAccount(int accountid, char[] sItemName, const char[] sItemType, 
 	pack.WriteString(sItemName);
 
 	convar_Table_Items.GetString(sTable, sizeof(sTable));
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `item_name`, `item_type`, `item_description`, `price`, `charges`, `first_created`, `last_updated`) VALUES ('', '%i', '', '', '', '%s', '%s', '%s', '%i', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `charges` = `charges + '%i';", sTable, accountid, sItemName2, sItemType, sItemDescription, iPrice, iCharges, iTime, iTime, iCharges);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `item_name`, `item_type`, `item_description`, `price`, `charges`, `first_created`) VALUES ('', '%i', '', '', '', '%s', '%s', '%s', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `charges` = `charges + '%i';", sTable, accountid, sItemName2, sItemType, sItemDescription, iPrice, iCharges, iTime, iCharges);
 	g_Database.Query(Query_GiveItemToAccount, sQuery, pack, DBPrio_Low);
 
 	return true;
@@ -2254,7 +2253,7 @@ void EquipItem(int client, const char[] sItemName, const char[] sItemType)
 		bool bUniqueToMap = IsItemUniqueToMap(sItemType);
 
 		char sQuery[4096];
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ip`, `item_type`, `item_name`, `map`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '%s', '%s') ON DUPLICATE KEY UPDATE `item_name` = '%s', `first_created` = 0, `last_updated` = %i;",
+		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ip`, `item_type`, `item_name`, `map`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '%s', '%s') ON DUPLICATE KEY UPDATE `item_name` = '%s', `first_created` = 0;",
 			sTable,
 			sEscapedName,
 			g_iCacheData_AccountID[client],
@@ -2265,8 +2264,7 @@ void EquipItem(int client, const char[] sItemName, const char[] sItemType)
 			sItemType,
 			sItemName,
 			bUniqueToMap ? g_sCurrentMap : "",
-			sItemName,
-			GetTime()
+			sItemName
 			);
 		g_Database.Query(OnEquipItem, sQuery);
 
@@ -2318,7 +2316,7 @@ void UnequipItem(int client, const char[] sItemName, const char[] sItemType)
 		bool bUniqueToMap = IsItemUniqueToMap(sItemType);
 
 		char sQuery[4096];
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ip`, `item_type`, `item_name`, `map`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '', '%s') ON DUPLICATE KEY UPDATE `item_name` = '', `first_created` = 0, `last_updated` = %i;",
+		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ip`, `item_type`, `item_name`, `map`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '', '%s') ON DUPLICATE KEY UPDATE `item_name` = '', `first_created` = 0;",
 			sTable,
 			sEscapedName,
 			g_iCacheData_AccountID[client],
@@ -2327,8 +2325,7 @@ void UnequipItem(int client, const char[] sItemName, const char[] sItemType)
 			g_sCacheData_SteamID64[client],
 			sIP,
 			sItemType,
-			bUniqueToMap ? g_sCurrentMap : "",
-			GetTime());
+			bUniqueToMap ? g_sCurrentMap : "");
 		g_Database.Query(OnUnequipItem, sQuery);
 
 		// TODO: 'first_created' is always set to 0, it would be more appropriate if this was moved to when a player first purchased the item,
@@ -3015,7 +3012,7 @@ public Action Command_ResetScore(int client, int args)
 		iCredits -= iDeduct;
 		Furious_Statistics_SetCredits(client, iCredits);
 
-		if (plugin_resetscore)
+		if (g_bFrsResetScore)
 			Furious_ResetScore_ResetPlayer(client);
 
 		CPrintToChat(client, "%T", "reset score", client, iDeduct);

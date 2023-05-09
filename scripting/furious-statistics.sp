@@ -344,7 +344,6 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("furious.phrases");
 
-
 	AutoExecConfig_SetFile("frs.statistics");
 	AutoExecConfig_CreateConVar("sm_furious_statistics_version", PLUGIN_VERSION, "Version control for this plugin.", FCVAR_DONTRECORD);
 	convar_Status = AutoExecConfig_CreateConVar("sm_furious_statistics_status", "1", "Status of the plugin.\n(1 = on, 0 = off)", FCVAR_NOTIFY, true, 0.0, true, 1.0);
@@ -550,7 +549,7 @@ public void OnMapEnd()
 
 	if (g_Database_Global != null)
 	{
-		g_Database_Global.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `map_playtime` = `map_playtime` + '%f', `last_updated` = '%i' WHERE `map` = '%s';", sTable, fTime, GetTime(), g_sCurrentMap);
+		g_Database_Global.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `map_playtime` = `map_playtime` + '%f' WHERE `map` = '%s';", sTable, fTime, g_sCurrentMap);
 		g_Database_Global.Query(OnUpdateMapData, sQuery);
 	}
 
@@ -669,7 +668,7 @@ void ParseMapData()
 		int time = GetTime();
 
 		char sQuery[MAX_QUERY_SIZE];
-		g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`map`, `map_loads`, `first_created`, `last_updated`) VALUES ('%s', '1', '%i', '%i') ON DUPLICATE KEY UPDATE `map_loads` = `map_loads` + '1', `last_updated` = '%i';", sTable, g_sCurrentMap, time, time, time);
+		g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`map`, `map_loads`, `first_created`) VALUES ('%s', '1', '%i') ON DUPLICATE KEY UPDATE `map_loads` = `map_loads` + '1';", sTable, g_sCurrentMap, time);
 		g_Database_Global.Query(TQuery_InsertNewMap, sQuery);
 	}
 }
@@ -721,15 +720,15 @@ public void OnSQLConnect_Global(Database db, const char[] error, any data)
 
 	//Create the database tables inside of global.
 	convar_Table_GlobalData.GetString(sTable, sizeof(sTable));
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `hostname` varchar(128) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `season_number` int UNSIGNED NOT NULL DEFAULT 0, `next_season` int UNSIGNED NOT NULL DEFAULT 0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `ip` (`ip`)) ENGINE=InnoDB;", sTable);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `hostname` varchar(128) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `season_number` int UNSIGNED NOT NULL DEFAULT 0, `next_season` int UNSIGNED NOT NULL DEFAULT 0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `ip` (`ip`)) ENGINE=InnoDB;", sTable);
 	g_Database_Global.Query(OnCreateTable, sQuery, DBPrio_Low);
 
 	convar_Table_GlobalStatistics.GetString(sTable, sizeof(sTable));
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `country` varchar(64) NOT NULL DEFAULT '', `clan_tag` varchar(32) NOT NULL DEFAULT '', `clan_name` varchar(32) NOT NULL DEFAULT '', `credits` int UNSIGNED NOT NULL DEFAULT 0, `credits_earned` int UNSIGNED NOT NULL DEFAULT 0, `credits_timer` float NOT NULL DEFAULT 0.0 , `kills` int UNSIGNED NOT NULL DEFAULT 0, `deaths` int UNSIGNED NOT NULL DEFAULT 0, `assists` int UNSIGNED NOT NULL DEFAULT 0, `headshots` int UNSIGNED NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0.0, `longest_killstreak` int UNSIGNED NOT NULL DEFAULT 0, `hits` int UNSIGNED NOT NULL DEFAULT 0, `shots` int UNSIGNED NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `converted` int UNSIGNED NOT NULL DEFAULT 0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `joined_times` int(12) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `steamid2` (`steamid2`)) ENGINE=InnoDB;", sTable);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `country` varchar(64) NOT NULL DEFAULT '', `clan_tag` varchar(32) NOT NULL DEFAULT '', `clan_name` varchar(32) NOT NULL DEFAULT '', `credits` int UNSIGNED NOT NULL DEFAULT 0, `credits_earned` int UNSIGNED NOT NULL DEFAULT 0, `credits_timer` float NOT NULL DEFAULT 0.0 , `kills` int UNSIGNED NOT NULL DEFAULT 0, `deaths` int UNSIGNED NOT NULL DEFAULT 0, `assists` int UNSIGNED NOT NULL DEFAULT 0, `headshots` int UNSIGNED NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0.0, `longest_killstreak` int UNSIGNED NOT NULL DEFAULT 0, `hits` int UNSIGNED NOT NULL DEFAULT 0, `shots` int UNSIGNED NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `converted` int UNSIGNED NOT NULL DEFAULT 0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, `joined_times` int(12) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `steamid2` (`steamid2`)) ENGINE=InnoDB;", sTable);
 	g_Database_Global.Query(OnCreateTable, sQuery, DBPrio_Low);
 	
 	convar_Table_GlobalMapStatistics.GetString(sTable, sizeof(sTable));
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `map` varchar(32) NOT NULL DEFAULT '', `map_loads` int UNSIGNED NOT NULL DEFAULT 0, `map_playtime` float NOT NULL DEFAULT 0.0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `map` (`map`)) ENGINE=InnoDB;", sTable);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `map` varchar(32) NOT NULL DEFAULT '', `map_loads` int UNSIGNED NOT NULL DEFAULT 0, `map_playtime` float NOT NULL DEFAULT 0.0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `map` (`map`)) ENGINE=InnoDB;", sTable);
 	g_Database_Global.Query(OnCreateTable, sQuery, DBPrio_Low);
 
 	//Insert the server into the servers table.
@@ -746,7 +745,7 @@ public void OnSQLConnect_Global(Database db, const char[] error, any data)
 
 	int iTime = GetTime();
 
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `first_created`, `last_updated`) VALUES ('%s', '%s', '%i', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s';", sTable, sHostname, sIP, iTime, iTime, sHostname);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `first_created`) VALUES ('%s', '%s', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s';", sTable, sHostname, sIP, iTime, sHostname);
 	g_Database_Global.Query(TQuery_OnUpdateServerSettings, sQuery);
 
 	//Check for the season after we have valid SQL queries.
@@ -1158,7 +1157,7 @@ void ValidateClientGlobalData(int client)
 	GeoipCountry(sIP, sCountry, sizeof(sCountry));
 
 	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ip`, `country`, `clan_tag`, `clan_name`, `credits`, `first_created`, `last_updated`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '', '', '0', '%i', '%i') ON DUPLICATE KEY UPDATE `name` = '%s', `accountid` = '%i', `steamid3` = '%s', `steamid64` = '%s', `ip` = '%s', `country` = '%s', `last_updated` = '%i', `joined_times` = `joined_times` + 1;", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sIP, sCountry, iTime, iTime, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sIP, sCountry, iTime);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ip`, `country`, `clan_tag`, `clan_name`, `credits`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%s', '', '', '0', '%i') ON DUPLICATE KEY UPDATE `name` = '%s', `accountid` = '%i', `steamid3` = '%s', `steamid64` = '%s', `ip` = '%s', `country` = '%s', `joined_times` = `joined_times` + 1;", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sIP, sCountry, iTime, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sIP, sCountry);
 	g_Database_Global.Query(TQuery_OnGlobalUpdate, sQuery, GetClientSerial(client));
 }
 
@@ -1431,7 +1430,7 @@ void ValidateClientServerData(int client)
 	data.WriteString(sName);
 	data.WriteCell(iTime);
 
-	g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `weapons_statistics`, `first_created`, `last_updated`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%i', '%i') ON DUPLICATE KEY UPDATE `name` = '%s', `last_updated` = '%i';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sWeaponsData, iTime, iTime, sEscapedName, iTime);
+	g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `weapons_statistics`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%i') ON DUPLICATE KEY UPDATE `name` = '%s';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], sWeaponsData, iTime, sEscapedName);
 	g_Database_Server.Query(TQuery_SyncClient_Season, sQuery, data);
 }
 
@@ -1481,7 +1480,7 @@ public void TQuery_SyncClient_Season(Database db, DBResultSet results, const cha
 	GetTableString_Maps(sTable, sizeof(sTable));
 
 	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `map`, `first_created`, `last_updated`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%i', '%i') ON DUPLICATE KEY UPDATE `name` = '%s', `last_updated` = '%i';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], g_sCurrentMap, iTime, iTime, sEscapedName, iTime);
+	g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `map`, `first_created`) VALUES ('%s', '%i', '%s', '%s', '%s', '%s', '%i') ON DUPLICATE KEY UPDATE `name` = '%s';", sTable, sEscapedName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID3[client], g_sCacheData_SteamID64[client], g_sCurrentMap, iTime, sEscapedName);
 	g_Database_Server.Query(TQuery_SyncClient_Map, sQuery, serial);
 }
 
@@ -1506,7 +1505,7 @@ public void OnClientCommandKeyValues_Post(int client, KeyValues kv)
 	kv.GetString("name", sClanname, sizeof(sClanname));
 
 	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `clan_tag` = '%s', `clan_name` = '%s', `last_updated` = '%i' WHERE `accountid` = '%i';", sTable, sClantag, sClanname, GetTime(), g_iCacheData_AccountID[client]);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `clan_tag` = '%s', `clan_name` = '%s' WHERE `accountid` = '%i';", sTable, sClantag, sClanname, g_iCacheData_AccountID[client]);
 	g_Database_Global.Query(TQuery_OnClanDataUpdate, sQuery);
 }
 
@@ -1568,7 +1567,7 @@ void SaveClientGlobalData(int client, Transaction trans = null)
 	g_Database_Global.Escape(sName, sEscapedName, sizeof(sEscapedName));
 
 	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `credits` = '%i', `credits_earned` = '%i', `credits_timer` = '%f', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f', `last_updated` = '%i' WHERE `accountid` = '%i';",
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `credits` = '%i', `credits_earned` = '%i', `credits_timer` = '%f', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f' WHERE `accountid` = '%i';",
 		sTable,
 		sEscapedName,
 		g_Stats[client][DATA_GLOBAL].credits,
@@ -1584,7 +1583,6 @@ void SaveClientGlobalData(int client, Transaction trans = null)
 		g_Stats[client][DATA_GLOBAL].shots,
 		g_Stats[client][DATA_GLOBAL].kdr,
 		g_Stats[client][DATA_GLOBAL].accuracy,
-		GetTime(),
 		g_iCacheData_AccountID[client]);
 
 	if (trans != null)
@@ -1623,13 +1621,12 @@ void SaveClientServerData(int client, Transaction trans = null)
 	LogMessage(sWeaponsStatistics);
 
 	int iAccountID = g_iCacheData_AccountID[client];
-	int time = GetTime();
 
 	char sQuery[MAX_QUERY_SIZE];
 	char sTable[MAX_TABLE_SIZE];
 
 	GetTableString_Season(sTable, sizeof(sTable));
-	Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f'%s, `last_updated` = '%i' WHERE `accountid` = '%i';",
+	Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f'%s WHERE `accountid` = '%i';",
 		sTable,
 		sEscapedName,
 		g_Stats[client][DATA_SEASON].kills,
@@ -1643,7 +1640,6 @@ void SaveClientServerData(int client, Transaction trans = null)
 		g_Stats[client][DATA_SEASON].kdr,
 		g_Stats[client][DATA_SEASON].accuracy,
 		strlen(sWeaponsStatistics) > 0 ? sWeaponsStatistics : "",
-		time,
 		iAccountID);
 
 	if (trans != null)
@@ -1652,7 +1648,7 @@ void SaveClientServerData(int client, Transaction trans = null)
 		g_Database_Server.Query(TQuery_OnSaveServerSeason, sQuery);
 
 	GetTableString_Maps(sTable, sizeof(sTable));
-	Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f', `last_updated` = '%i' WHERE `accountid` = '%i' AND `map` = '%s';",
+	Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `name` = '%s', `kills` = '%i', `deaths` = '%i', `assists` = '%i', `headshots` = '%i', `points` = '%f', `longest_killstreak` = '%i', `hits` = '%i', `shots` = '%i', `kdr` = '%f', `accuracy` = '%f' WHERE `accountid` = '%i' AND `map` = '%s';",
 		sTable,
 		sEscapedName,
 		g_Stats[client][DATA_MAP].kills,
@@ -1665,7 +1661,6 @@ void SaveClientServerData(int client, Transaction trans = null)
 		g_Stats[client][DATA_MAP].shots,
 		g_Stats[client][DATA_MAP].kdr,
 		g_Stats[client][DATA_MAP].accuracy,
-		time,
 		iAccountID,
 		g_sCurrentMap);
 
@@ -5243,7 +5238,7 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 	int iTime = GetTime();
 
 	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `season_number`, `next_season`, `first_created`, `last_updated`) VALUES ('%s', '%s', '%i', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s', `season_number` = '%i', `next_season` = '%i', `last_updated` = '%i';", sTable, sHostname, sIP, g_iSeason, g_iNextSeason, iTime, iTime, sHostname, g_iSeason, g_iNextSeason, iTime);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `season_number`, `next_season`, `first_created`) VALUES ('%s', '%s', '%i', '%i', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s', `season_number` = '%i', `next_season` = '%i';", sTable, sHostname, sIP, g_iSeason, g_iNextSeason, iTime, sHostname, g_iSeason, g_iNextSeason);
 	g_Database_Global.Query(TQuery_OnUpdateServerSettings, sQuery);
 
 	if (g_iSeason == 0)
@@ -5257,7 +5252,7 @@ void TryCreateSeasonalMapAndSessionTables()
 	Transaction trans = new Transaction();
 
 	GetTableString_Season(sTable, sizeof(sTable));
-	int cells = g_Database_Server.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` (`id` int(12) NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int(12) NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `kills` int(12) NOT NULL DEFAULT 0, `deaths` int(12) NOT NULL DEFAULT 0, `assists` int(12) NOT NULL DEFAULT 0, `headshots` int(12) NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0, `longest_killstreak` int(12) NOT NULL DEFAULT 0, `hits` int(12) NOT NULL DEFAULT 0, `shots` int(12) NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `weapons_statistics` varchar(4096) NOT NULL DEFAULT '', `first_created` int(32) NOT NULL DEFAULT 0, `last_updated` int(32) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), UNIQUE KEY `accountid` (`accountid`)", sTable);
+	int cells = g_Database_Server.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` (`id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `kills` int UNSIGNED NOT NULL DEFAULT 0, `deaths` int UNSIGNED NOT NULL DEFAULT 0, `assists` int UNSIGNED NOT NULL DEFAULT 0, `headshots` int UNSIGNED NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0.0, `longest_killstreak` int UNSIGNED NOT NULL DEFAULT 0, `hits` int UNSIGNED NOT NULL DEFAULT 0, `shots` int UNSIGNED NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `weapons_statistics` mediumtext NOT NULL DEFAULT '', `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `accountid` (`accountid`)", sTable);
 
 	Call_StartForward(g_Forward_SeasonTable_OnCreateTable);
 	Call_PushStringEx(sQuery[cells], sizeof(sQuery) - cells, SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
@@ -5265,16 +5260,16 @@ void TryCreateSeasonalMapAndSessionTables()
 	Call_PushCellRef(cells);
 	Call_Finish();
 
-	Format(sQuery[cells], sizeof(sQuery) - cells, ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;");
+	Format(sQuery[cells], sizeof(sQuery) - cells, ") ENGINE=InnoDB;");
 
 	trans.AddQuery(sQuery);
 
 	GetTableString_Maps(sTable, sizeof(sTable));
-	g_Database_Server.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` (`id` int(12) NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int(12) NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `kills` int(12) NOT NULL DEFAULT 0, `deaths` int(12) NOT NULL DEFAULT 0, `assists` int(12) NOT NULL DEFAULT 0, `headshots` int(12) NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0, `longest_killstreak` int(12) NOT NULL DEFAULT 0, `hits` int(12) NOT NULL DEFAULT 0, `shots` int(12) NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `playcount` int(12) NOT NULL DEFAULT 0, `map` varchar(64) NOT NULL DEFAULT '', `first_created` int(32) NOT NULL, `last_updated` int(32) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), UNIQUE KEY `map_ident` (`accountid`,`map`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;", sTable);
+	g_Database_Server.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` (`id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `kills` int UNSIGNED NOT NULL DEFAULT 0, `deaths` int UNSIGNED NOT NULL DEFAULT 0, `assists` int UNSIGNED NOT NULL DEFAULT 0, `headshots` int UNSIGNED NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0.0, `longest_killstreak` int UNSIGNED NOT NULL DEFAULT 0, `hits` int UNSIGNED NOT NULL DEFAULT 0, `shots` int UNSIGNED NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `playcount` int UNSIGNED NOT NULL DEFAULT 0, `map` varchar(64) NOT NULL DEFAULT '', `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `map_ident` (`accountid`,`map`)) ENGINE=InnoDB;", sTable);
 	trans.AddQuery(sQuery);
 
 	GetTableString_Sessions(sTable, sizeof(sTable));
-	g_Database_Server.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` (`id` int(12) NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int(12) NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `ranks_gained` int(12) NOT NULL DEFAULT 0, `ranks_lost` int(12) NOT NULL DEFAULT 0, `points_gained` float NOT NULL DEFAULT 0, `points_lost` float NOT NULL DEFAULT 0, `map` varchar(32) NOT NULL DEFAULT '', `first_created` int(12) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;", sTable);
+	g_Database_Server.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` (`id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `ranks_gained` int UNSIGNED NOT NULL DEFAULT 0, `ranks_lost` int UNSIGNED NOT NULL DEFAULT 0, `points_gained` float NOT NULL DEFAULT 0.0, `points_lost` float NOT NULL DEFAULT 0.0, `map` varchar(32) NOT NULL DEFAULT '', `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=InnoDB;", sTable);
 	trans.AddQuery(sQuery);
 
 	g_Database_Server.Execute(trans, Transaction_OnCreateTables_Success, Transaction_OnCreateTables_Failure);
