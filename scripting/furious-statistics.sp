@@ -3,7 +3,7 @@
 #pragma newdecls required
 
 /*-- Defines --*/
-#define PLUGIN_VERSION "1.3.1"
+#define PLUGIN_VERSION "1.3.2"
 
 #define VIP_FLAGS ADMFLAG_CUSTOM5
 
@@ -702,12 +702,23 @@ public void OnSQLConnect_Global(Database db, const char[] error, any data)
 
 	g_Database_Global.SetCharset("utf8mb4");
 
-	//No point in recreating the global tables over and over again.
-	//CREATE TABLE IF NOT EXISTS `furious_global_server_data` ( `id` int(12) NOT NULL AUTO_INCREMENT, `hostname` varchar(128) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `season_number` int(12) NOT NULL DEFAULT 0, `next_season` int(12) NOT NULL DEFAULT 0, `first_created` int(12) NOT NULL, `last_updated` int(12) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), UNIQUE KEY `ip` (`ip`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
-	//CREATE TABLE IF NOT EXISTS `furious_global_statistics` ( `id` int(12) NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int(32) NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `country` varchar(45) NOT NULL DEFAULT '', `clan_tag` varchar(32) NOT NULL DEFAULT '', `clan_name` varchar(32) NOT NULL DEFAULT '', `credits` int(12) NOT NULL DEFAULT 0, `credits_earned` int(12) NOT NULL DEFAULT 0, `credits_timer` FLOAT NOT NULL DEFAULT '0.0' , `kills` int(12) NOT NULL DEFAULT 0, `deaths` int(12) NOT NULL DEFAULT 0, `assists` int(12) NOT NULL DEFAULT 0, `headshots` int(12) NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0, `longest_killstreak` int(12) NOT NULL DEFAULT 0, `hits` int(12) NOT NULL DEFAULT 0, `shots` int(12) NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `converted` int(12) NOT NULL DEFAULT 0, `first_created` int(12) NOT NULL, `last_updated` int(12) NOT NULL, `joined_times` int(12) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), UNIQUE KEY `steamid2` (`steamid2`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
-	//CREATE TABLE IF NOT EXISTS `furious_global_map_statistics` ( `id` int(12) NOT NULL AUTO_INCREMENT, `map` varchar(32) NOT NULL DEFAULT '', `map_loads` int(12) NOT NULL DEFAULT 0, `map_playtime` float NOT NULL DEFAULT 0.0, `first_created` int(12) NOT NULL, `last_updated` int(12) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), UNIQUE KEY `map` (`map`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
-
+	char sQuery[MAX_QUERY_SIZE];
 	char sTable[MAX_TABLE_SIZE];
+
+	//Create the database tables inside of global.
+	convar_Table_GlobalData.GetString(sTable, sizeof(sTable));
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `hostname` varchar(128) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `season_number` int UNSIGNED NOT NULL DEFAULT 0, `next_season` int UNSIGNED NOT NULL DEFAULT 0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `ip` (`ip`)) ENGINE=InnoDB;", sTable);
+	g_Database_Global.Query(OnCreateTable, sQuery, DBPrio_Low);
+
+	convar_Table_GlobalStatistics.GetString(sTable, sizeof(sTable));
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `ip` varchar(64) NOT NULL DEFAULT '', `country` varchar(64) NOT NULL DEFAULT '', `clan_tag` varchar(32) NOT NULL DEFAULT '', `clan_name` varchar(32) NOT NULL DEFAULT '', `credits` int UNSIGNED NOT NULL DEFAULT 0, `credits_earned` int UNSIGNED NOT NULL DEFAULT 0, `credits_timer` float NOT NULL DEFAULT 0.0 , `kills` int UNSIGNED NOT NULL DEFAULT 0, `deaths` int UNSIGNED NOT NULL DEFAULT 0, `assists` int UNSIGNED NOT NULL DEFAULT 0, `headshots` int UNSIGNED NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0.0, `longest_killstreak` int UNSIGNED NOT NULL DEFAULT 0, `hits` int UNSIGNED NOT NULL DEFAULT 0, `shots` int UNSIGNED NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `converted` int UNSIGNED NOT NULL DEFAULT 0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `joined_times` int(12) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `steamid2` (`steamid2`)) ENGINE=InnoDB;", sTable);
+	g_Database_Global.Query(OnCreateTable, sQuery, DBPrio_Low);
+	
+	convar_Table_GlobalMapStatistics.GetString(sTable, sizeof(sTable));
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` int UNSIGNED NOT NULL AUTO_INCREMENT, `map` varchar(32) NOT NULL DEFAULT '', `map_loads` int UNSIGNED NOT NULL DEFAULT 0, `map_playtime` float NOT NULL DEFAULT 0.0, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `map` (`map`)) ENGINE=InnoDB;", sTable);
+	g_Database_Global.Query(OnCreateTable, sQuery, DBPrio_Low);
+
+	//Insert the server into the servers table.
 	convar_Table_GlobalData.GetString(sTable, sizeof(sTable));
 
 	char sHostname[MAX_NAME_LENGTH];
@@ -721,11 +732,17 @@ public void OnSQLConnect_Global(Database db, const char[] error, any data)
 
 	int iTime = GetTime();
 
-	char sQuery[MAX_QUERY_SIZE];
 	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `first_created`, `last_updated`) VALUES ('%s', '%s', '%i', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s';", sTable, sHostname, sIP, iTime, iTime, sHostname);
 	g_Database_Global.Query(TQuery_OnUpdateServerSettings, sQuery);
 
+	//Check for the season after we have valid SQL queries.
 	SeasonCheck();
+}
+
+public void OnCreateTable(Database db, DBResultSet results, const char[] error, any data) {
+	if (results == null) {
+		ThrowError("Error while creating table: %s", error);
+	}
 }
 
 public void OnSQLConnect_Server(Database db, const char[] error, any data)
@@ -5522,8 +5539,11 @@ public Action Command_TopCountries(int client, int args)
 
 void OpenTopCountries(int client)
 {
+	char sTable[MAX_TABLE_SIZE];
+	convar_Table_GlobalStatistics.GetString(sTable, sizeof(sTable));
+
 	char sQuery[512];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "SELECT s.country, SUM(s.points), (SELECT COUNT(*) as rank FROM `furious_global_statistics` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank FROM `furious_global_statistics` as s GROUP BY s.country, s.points DESC ORDER BY `rank` ASC;");
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "SELECT s.country, SUM(s.points), (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank FROM `%s` as s GROUP BY s.country, s.points DESC ORDER BY `rank` ASC;", sTable, sTable);
 	g_Database_Global.Query(OnParseTopCountries, sQuery, GetClientSerial(client));
 }
 
@@ -5576,8 +5596,11 @@ void OpenTopCountry(int client, const char[] country)
 	pack.WriteCell(GetClientSerial(client));
 	pack.WriteString(country);
 
+	char sTable[MAX_TABLE_SIZE];
+	convar_Table_GlobalStatistics.GetString(sTable, sizeof(sTable));
+
 	char sQuery[256];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "SELECT steamid2, name, points FROM `furious_global_statistics` WHERE country = '%s' ORDER BY points DESC LIMIT 200;", country);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "SELECT steamid2, name, points FROM `%s` WHERE country = '%s' ORDER BY points DESC LIMIT 200;", sTable, country);
 	g_Database_Global.Query(OnParseTopCountry, sQuery, pack);
 }
 
