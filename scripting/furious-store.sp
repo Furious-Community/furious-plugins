@@ -1,8 +1,11 @@
 /*-- Pragmas --*/
 #pragma semicolon 1
+#pragma newdecls required
 
 /*-- Defines --*/
 #define VIP_FLAGS ADMFLAG_CUSTOM5
+
+#define PLUGIN_VERSION "1.2.9"
 
 #define MAX_BUTTONS 25
 #define MAX_FLAGS_LENGTH 21
@@ -22,6 +25,7 @@
 #include <sdktools>
 #include <cstrike>
 #include <clientprefs>
+
 #include <colorlib>
 #include <autoexecconfig>
 #include <afk_manager>
@@ -38,17 +42,6 @@
 #include <furious/furious-playerskins>
 #include <furious/furious-resetscore>
 #define REQUIRE_PLUGIN
-
-enum WelcomeGiftStatus
-{
-	GiftStatus_Pending = -1,
-	GiftStatus_IsNotEligible,
-	GiftStatus_IsEligible,
-}
-
-int g_iLoadedStats[MAXPLAYERS + 1];
-int g_LoadingTrials[MAXPLAYERS + 1];
-int g_IsDataLoaded[MAXPLAYERS + 1][2];
 
 /*-- ConVars --*/
 ConVar convar_Status;
@@ -175,13 +168,24 @@ enum struct ModelColors
 
 ModelColors mcColors[MAX_STORE_ITEMS][32];
 
+enum WelcomeGiftStatus
+{
+	GiftStatus_Pending = -1,
+	GiftStatus_IsNotEligible,
+	GiftStatus_IsEligible,
+}
+
+int g_iLoadedStats[MAXPLAYERS + 1];
+int g_LoadingTrials[MAXPLAYERS + 1];
+int g_IsDataLoaded[MAXPLAYERS + 1][2];
+
 /*-- Plugin Info --*/
 public Plugin myinfo =
 {
 	name = "[Furious] Store",
 	author = "Drixevel",
 	description = "Store module for Furious Clan.",
-	version = "1.2.8",
+	version = PLUGIN_VERSION,
 	url = "http://furious-clan.com/"
 };
 
@@ -215,7 +219,9 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("furious.phrases");
 
+
 	AutoExecConfig_SetFile("frs.store");
+	AutoExecConfig_CreateConVar("sm_furious_store_version", PLUGIN_VERSION, "Version control for this plugin.", FCVAR_DONTRECORD);
 	convar_Status = AutoExecConfig_CreateConVar("sm_furious_store_status", "1", "Status of the plugin.\n(1 = on, 0 = off)", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	convar_Config = AutoExecConfig_CreateConVar("sm_furious_store_config", "configs/furious/furious_store.cfg", "Name of the config file to use.", FCVAR_NOTIFY);
 	convar_Table_Items = AutoExecConfig_CreateConVar("sm_furious_store_table_items", "furious_global_store_items", "Name of the database table to use in side the global database for items.", FCVAR_NOTIFY);
