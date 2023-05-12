@@ -883,7 +883,7 @@ public void TQuery_CheckTopTen2(Database db, DBResultSet results, const char[] e
 		return;
 
 	char sStar[48];
-	if (GetUserFlagBits(client))
+	if (g_bFrsTags && GetUserFlagBits(client))
 	{
 		int index = Furious_Tags_GetPrefixID(client);
 		char sPrefix[32], sColor[16];
@@ -2033,7 +2033,7 @@ public void OnPlayerDisconnect(Event event, const char[] name, bool dontBroadcas
 	char sReason[64];
 	event.GetString("reason", sReason, sizeof(sReason));
 	char sStar[48];
-	if (GetUserFlagBits(client))
+	if (g_bFrsTags && GetUserFlagBits(client))
 	{
 		int index = Furious_Tags_GetPrefixID(client);
 		char sPrefix[32], sColor[16];
