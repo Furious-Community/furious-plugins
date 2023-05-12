@@ -3,7 +3,7 @@
 #pragma newdecls required
 
 /*-- Defines --*/
-#define PLUGIN_VERSION "1.3.5"
+#define PLUGIN_VERSION "1.3.6"
 
 #define VIP_FLAGS ADMFLAG_CUSTOM5
 
@@ -5244,7 +5244,7 @@ void TryCreateSeasonalMapAndSessionTables()
 	Transaction trans = new Transaction();
 
 	GetTableString_Season(sTable, sizeof(sTable));
-	int cells = g_Database_Server.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` (`id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `kills` int UNSIGNED NOT NULL DEFAULT 0, `deaths` int UNSIGNED NOT NULL DEFAULT 0, `assists` int UNSIGNED NOT NULL DEFAULT 0, `headshots` int UNSIGNED NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0.0, `longest_killstreak` int UNSIGNED NOT NULL DEFAULT 0, `hits` int UNSIGNED NOT NULL DEFAULT 0, `shots` int UNSIGNED NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `weapons_statistics` mediumtext NOT NULL DEFAULT '', `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `accountid` (`accountid`)", sTable);
+	int cells = g_Database_Server.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` (`id` int UNSIGNED NOT NULL AUTO_INCREMENT, `name` varchar(64) NOT NULL DEFAULT '', `accountid` int UNSIGNED NOT NULL DEFAULT 0, `steamid2` varchar(64) NOT NULL DEFAULT '', `steamid3` varchar(64) NOT NULL DEFAULT '', `steamid64` varchar(64) NOT NULL DEFAULT '', `kills` int UNSIGNED NOT NULL DEFAULT 0, `deaths` int UNSIGNED NOT NULL DEFAULT 0, `assists` int UNSIGNED NOT NULL DEFAULT 0, `headshots` int UNSIGNED NOT NULL DEFAULT 0, `points` float NOT NULL DEFAULT 0.0, `longest_killstreak` int UNSIGNED NOT NULL DEFAULT 0, `hits` int UNSIGNED NOT NULL DEFAULT 0, `shots` int UNSIGNED NOT NULL DEFAULT 0, `kdr` float NOT NULL DEFAULT 0.0, `accuracy` float NOT NULL DEFAULT 0.0, `playtime` float NOT NULL DEFAULT 0.0, `weapons_statistics` mediumtext NOT NULL, `first_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `accountid` (`accountid`)", sTable);
 
 	Call_StartForward(g_Forward_SeasonTable_OnCreateTable);
 	Call_PushStringEx(sQuery[cells], sizeof(sQuery) - cells, SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
