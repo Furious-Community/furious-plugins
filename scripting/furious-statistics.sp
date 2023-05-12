@@ -611,8 +611,22 @@ public void OnMapEnd()
 
 		g_Database_Server.Execute(trans, onSuccess_Sessions, onError_Sessions);
 	} else {
-		LogError("Error while saving map statistics or player session statistics: Not Connected to Database.");
 		g_MapCount.Clear();
+		StringMap trie;
+		int iAccountID; char sAccountID[64];
+
+		for (int i = 0; i < g_SessionIDs.Length; i++)
+		{
+			iAccountID = g_SessionIDs.Get(i);
+
+			IntToString(iAccountID, sAccountID, sizeof(sAccountID));
+
+			if (g_SessionCache.GetValue(sAccountID, trie) && trie != null)
+			{
+				delete trie;
+				g_SessionCache.Remove(sAccountID);
+			}
+		}
 		g_SessionCache.Clear(); //Nested handles, need to update later to remove them otherwise leaks.
 		g_SessionIDs.Clear();
 	}
