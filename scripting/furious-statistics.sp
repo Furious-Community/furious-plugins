@@ -555,60 +555,67 @@ public void OnMapEnd()
 
 	g_fStartTime = 0.0;
 
-	Transaction trans = new Transaction();
+	if (g_Database_Server != null) {
+		Transaction trans = new Transaction();
 
-	if (g_MapCount.Length > 0)
-	{
-		GetTableString_Maps(sTable, sizeof(sTable));
-
-		for (int i = 0; i < g_MapCount.Length; i++)
+		if (g_MapCount.Length > 0)
 		{
-			g_Database_Server.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `playcount` = `playcount` + 1 WHERE `accountid` = '%i' AND `map` = '%s';", sTable, g_MapCount.Get(i), g_sCurrentMap);
-			trans.AddQuery(sQuery);
-		}
+			GetTableString_Maps(sTable, sizeof(sTable));
 
-		g_MapCount.Clear();
-	}
-
-	if (g_SessionIDs.Length > 0)
-	{
-		GetTableString_Sessions(sTable, sizeof(sTable));
-
-		int iAccountID, iLocalRanksGained, iLocalRanksLost;
-		float fLocalPointsGained, fLocalPointsLost;
-		char sAccountID[64], sName[MAX_NAME_LENGTH], sSteamID2[64], sSteamID3[64], sSteamID64[64];
-		StringMap trie;
-
-		for (int i = 0; i < g_SessionIDs.Length; i++)
-		{
-			iAccountID = g_SessionIDs.Get(i);
-
-			IntToString(iAccountID, sAccountID, sizeof(sAccountID));
-
-			if (g_SessionCache.GetValue(sAccountID, trie) && trie != null)
+			for (int i = 0; i < g_MapCount.Length; i++)
 			{
-				trie.GetString("Name", sName, sizeof(sName));
-				trie.GetString("SteamID2", sSteamID2, sizeof(sSteamID2));
-				trie.GetString("SteamID3", sSteamID3, sizeof(sSteamID3));
-				trie.GetString("SteamID64", sSteamID64, sizeof(sSteamID64));
-				trie.GetValue("RanksGained", iLocalRanksGained);
-				trie.GetValue("RanksLost", iLocalRanksLost);
-				trie.GetValue("PointsGained", fLocalPointsGained);
-				trie.GetValue("PointsLost", fLocalPointsLost);
-
-				g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ranks_gained`, `ranks_lost`, `points_gained`, `points_lost`, `map`) VALUES ('%s', '%i', '%s', '%s', '%s', '%i', '%i', '%f', '%f', '%s');", sTable, sName, iAccountID, sSteamID2, sSteamID3, sSteamID64, iLocalRanksGained, iLocalRanksLost, fLocalPointsGained, fLocalPointsLost, g_sCurrentMap);
+				g_Database_Server.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET `playcount` = `playcount` + 1 WHERE `accountid` = '%i' AND `map` = '%s';", sTable, g_MapCount.Get(i), g_sCurrentMap);
 				trans.AddQuery(sQuery);
-
-				delete trie;
-				g_SessionCache.Remove(sAccountID);
 			}
+
+			g_MapCount.Clear();
 		}
 
-		g_SessionCache.Clear();
+		if (g_SessionIDs.Length > 0)
+		{
+			GetTableString_Sessions(sTable, sizeof(sTable));
+
+			int iAccountID, iLocalRanksGained, iLocalRanksLost;
+			float fLocalPointsGained, fLocalPointsLost;
+			char sAccountID[64], sName[MAX_NAME_LENGTH], sSteamID2[64], sSteamID3[64], sSteamID64[64];
+			StringMap trie;
+
+			for (int i = 0; i < g_SessionIDs.Length; i++)
+			{
+				iAccountID = g_SessionIDs.Get(i);
+
+				IntToString(iAccountID, sAccountID, sizeof(sAccountID));
+
+				if (g_SessionCache.GetValue(sAccountID, trie) && trie != null)
+				{
+					trie.GetString("Name", sName, sizeof(sName));
+					trie.GetString("SteamID2", sSteamID2, sizeof(sSteamID2));
+					trie.GetString("SteamID3", sSteamID3, sizeof(sSteamID3));
+					trie.GetString("SteamID64", sSteamID64, sizeof(sSteamID64));
+					trie.GetValue("RanksGained", iLocalRanksGained);
+					trie.GetValue("RanksLost", iLocalRanksLost);
+					trie.GetValue("PointsGained", fLocalPointsGained);
+					trie.GetValue("PointsLost", fLocalPointsLost);
+
+					g_Database_Server.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`name`, `accountid`, `steamid2`, `steamid3`, `steamid64`, `ranks_gained`, `ranks_lost`, `points_gained`, `points_lost`, `map`) VALUES ('%s', '%i', '%s', '%s', '%s', '%i', '%i', '%f', '%f', '%s');", sTable, sName, iAccountID, sSteamID2, sSteamID3, sSteamID64, iLocalRanksGained, iLocalRanksLost, fLocalPointsGained, fLocalPointsLost, g_sCurrentMap);
+					trans.AddQuery(sQuery);
+
+					delete trie;
+					g_SessionCache.Remove(sAccountID);
+				}
+			}
+
+			g_SessionCache.Clear();
+			g_SessionIDs.Clear();
+		}
+
+		g_Database_Server.Execute(trans, onSuccess_Sessions, onError_Sessions);
+	} else {
+		LogError("Error while saving map statistics or player session statistics: Not Connected to Database.");
+		g_MapCount.Clear();
+		g_SessionCache.Clear(); //Nested handles, need to update later to remove them otherwise leaks.
 		g_SessionIDs.Clear();
 	}
-
-	g_Database_Server.Execute(trans, onSuccess_Sessions, onError_Sessions);
 
 	for (int i = 1; i <= MaxClients; i++) {
 		g_WinPanel[i].loaded = false;
