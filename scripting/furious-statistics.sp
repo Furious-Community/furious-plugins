@@ -37,7 +37,6 @@
 #include <autoexecconfig>
 #include <json>
 #include <unixtime_sourcemod>
-#include <socket>
 
 /*-- Furious Includes --*/
 #include <furious/furious-stocks>
@@ -227,9 +226,6 @@ bool bStoppedTimer[MAXPLAYERS + 1];
 
 int g_iAwaitingMessageOnAuthorized[MAXPLAYERS + 1];
 
-Handle g_hSeasonChangeSocket;
-Handle g_hSocketListeners[16];
-
 enum struct WinPanel {
 	int client;
 	bool loaded;
@@ -386,10 +382,6 @@ public void OnPluginStart()
 
 	convar_MinimumPlayersStatistics.AddChangeHook(ConVarChanged_MinimumPlayers);
 
-	g_hSeasonChangeSocket = SocketCreate(SOCKET_TCP, OnSocketError);
-	SocketBind(g_hSeasonChangeSocket, "0.0.0.0", 50000);
-	SocketListen(g_hSeasonChangeSocket, OnSocketIncoming);
-
 	HookEvent("player_spawn", OnPlayerSpawn);
 	HookEvent("player_death", OnPlayerDeath);
 	HookEvent("weapon_fire", OnWeaponFire);
@@ -439,7 +431,6 @@ public void OnPluginStart()
 	RegAdminCmd("sm_reloadranks", Command_ReloadRanks, ADMFLAG_ROOT, "Reloads ranks data.");
 	RegAdminCmd("sm_reloadtiers", Command_ReloadTiers, ADMFLAG_ROOT, "Reloads tiers data.");
 	RegAdminCmd("sm_testspechud", Command_TestSpecHud, ADMFLAG_ROOT, "Test the spectator hud.");
-	RegAdminCmd("sm_testsocket", Command_TestSocket, ADMFLAG_ROOT, "Test socket");
 	RegAdminCmd("sm_testwinpanel", Command_TestWinPanel, ADMFLAG_ROOT, "Test Win Panel");
 
 	g_WeaponsList = new ArrayList(ByteCountToCells(MAX_NAME_LENGTH));
@@ -5289,76 +5280,6 @@ void TryCreateSeasonalMapAndSessionTables()
 	g_Database_Server.Execute(trans, Transaction_OnCreateTables_Success, Transaction_OnCreateTables_Failure);
 }
 
-public void Furious_Statistics_OnSeasonChange(int season, char[] ip, int port)
-{
-	if (season <= 1)
-		return;
-
-	DataPack pack = new DataPack();
-	pack.WriteCell(season);
-	pack.WriteString(ip);
-	pack.WriteCell(port);
-
-	char sTable[MAX_TABLE_SIZE];
-	convar_Table_ServerSeasons.GetString(sTable, sizeof(sTable));
-	Format(sTable, sizeof(sTable), "%s%i", sTable, season - 1);
-
-	char sQuery[MAX_QUERY_SIZE];
-	g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT `name` FROM `%s` ORDER BY `points` DESC LIMIT 10;", sTable);
-	g_Database_Server.Query(TQuery_CheckTopTen3, sQuery, pack);
-}
-
-public void TQuery_CheckTopTen3(Database database, DBResultSet results, const char[] error, DataPack pack)
-{
-	pack.Reset();
-
-	int season = pack.ReadCell();
-	char ip[64];
-	pack.ReadString(ip, sizeof(ip));
-	int port = pack.ReadCell();
-	delete pack;
-
-	if (database == null)
-		ThrowError("Database is null");
-
-	char sAddress[128], sTitle[64], sBody[4096];
-	Format(sAddress, sizeof(sAddress), "%s:%i", ip, port);
-	Format(sTitle, sizeof(sTitle), "WELCOME TO SEASON %i", season);
-	Format(sBody, sizeof(sBody), "Congratulations to the Season %i top players:\n", season - 1);
-
-	JSON_Object hSocketData = new JSON_Object();
-	hSocketData.SetString("socket_type", "season_change");
-	hSocketData.SetString("socket_token", "C@%uKocGswh8@Ms#YDr6");
-	hSocketData.SetInt("server_port", port);
-	hSocketData.SetInt("season", season);
-
-	JSON_Array hTopPlayers = new JSON_Array();
-	
-	int ix;
-	while (results.FetchRow())
-	{
-		char sName[128];
-		results.FetchString(0, sName, sizeof(sName));
-
-		Format(sBody, sizeof(sBody), "%s\n%i %s", sBody, ++ix, sName);
-
-		JSON_Object hTopPlayer = new JSON_Object();
-		hTopPlayer.SetInt("rank", ix);
-		hTopPlayer.SetString("name", sName);
-
-		hTopPlayers.PushObject(hTopPlayer);
-	}
-
-	Format(sBody, sizeof(sBody), "%s\n\nSee all stats at: furious-clan.com/#/players", sBody);
-
-	hSocketData.SetObject("data", hTopPlayers);
-	char sSocketData[4096];
-	json_encode(hSocketData, sSocketData, sizeof(sSocketData));
-	hSocketData.Cleanup();
-	delete hSocketData;
-	SocketOutput(g_hSocketListeners, sizeof(g_hSocketListeners), sSocketData);
-}
-
 void PrecacheSoundF(char[] buffer, int maxlength, ConVar convar)
 {
 	convar.GetString(buffer, maxlength);
@@ -5379,68 +5300,6 @@ void PerformJoinMessage(int client)
 	char sQuery[MAX_QUERY_SIZE];
 	g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT `steamid64` FROM `%s` ORDER BY `points` DESC LIMIT 10;", sTable);
 	g_Database_Server.Query(TQuery_CheckTopTen2, sQuery, GetClientSerial(client));
-}
-
-public void OnSocketError(Handle socket, const int errorType, const int errorNum, any ary)
-{
-	LogError("socket error %d (errno %d)", errorType, errorNum);
-	delete socket;
-}
-
-public void OnSocketIncoming(Handle socket, Handle newSocket, char[] remoteIP, int remotePort, any arg)
-{
-	LogMessage("[SOCKET] %s:%d connected", remoteIP, remotePort);
-
-	SocketSetReceiveCallback(newSocket, OnChildSocketReceive);
-	SocketSetDisconnectCallback(newSocket, OnChildSocketDisconnected);
-	SocketSetErrorCallback(newSocket, OnChildSocketError);
-
-	for (int i = 0; i < sizeof(g_hSocketListeners); ++i)
-	{
-		if (g_hSocketListeners[i] != null && SocketIsConnected(g_hSocketListeners[i]))
-			continue;
-
-		g_hSocketListeners[i] = CloneHandle(newSocket);
-		break;
-	}
-
-	SocketSend(newSocket, "working!\n");
-}
-
-public void OnChildSocketReceive(Handle socket, char[] receiveData, const int dataSize, any hFile)
-{
-	SocketSend(socket, receiveData);
-
-	if (StrEqual(receiveData, "quit"))
-		delete socket;
-}
-
-public void OnChildSocketDisconnected(Handle socket, any hFile)
-{
-	delete socket;
-}
-
-public void OnChildSocketError(Handle socket, const int errorType, const int errorNum, any ary)
-{
-	LogError("child socket error %d (errno %d)", errorType, errorNum);
-	delete socket;
-}
-
-public Action Command_TestSocket(int client, int args)
-{
-	Furious_Statistics_OnSeasonChange(5, "149.202.65.29", 27018);
-	return Plugin_Handled;
-}
-
-void SocketOutput(Handle[] listeners, int length, char[] output)
-{
-	for (int i = 0; i < length; ++i)
-	{
-		if (listeners[i] == null || !SocketIsConnected(listeners[i]))
-			continue;
-
-		SocketSend(listeners[i], output);
-	}
 }
 
 public Action Command_CountryRank(int client, int args)
