@@ -105,6 +105,7 @@ bool g_bFrsTags;
 bool g_bFrsWeapons;
 bool g_bFrsVIP;
 
+EngineVersion g_EngineVersion;
 char g_sCurrentMap[MAX_NAME_LENGTH];
 bool g_bLate;
 bool g_bBetweenRounds;
@@ -290,6 +291,8 @@ public Plugin myinfo =
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
+	g_EngineVersion = GetEngineVersion();
+
 	MarkNativeAsOptional("Furious_Tags_GetPrefixID");
 	MarkNativeAsOptional("Furious_Tags_GetHudPrefix");
 	MarkNativeAsOptional("Furious_Tags_GetHudPrefixColor");
@@ -789,34 +792,63 @@ public void OnSQLConnect_Server(Database db, const char[] error, any data)
 
 bool ParseWeaponsList()
 {
-	char sPath[PLATFORM_MAX_PATH];
-	FormatEx(sPath, sizeof(sPath), "scripts/items/items_game.txt");
+	g_WeaponsList.Clear();
 
-	KeyValues kv = new KeyValues("items_game");
+	switch (g_EngineVersion) {
+		case Engine_CSGO: {
+			char sPath[PLATFORM_MAX_PATH];
+			FormatEx(sPath, sizeof(sPath), "scripts/items/items_game.txt");
 
-	if (kv.ImportFromFile(sPath) && kv.JumpToKey("items") && kv.GotoFirstSubKey())
-	{
-		g_WeaponsList.Clear();
+			KeyValues kv = new KeyValues("items_game");
 
-		char sWeapon[MAX_NAME_LENGTH];
-		do
-		{
-			kv.GetString("name", sWeapon, sizeof(sWeapon));
+			if (kv.ImportFromFile(sPath) && kv.JumpToKey("items") && kv.GotoFirstSubKey())
+			{
+				char sWeapon[MAX_NAME_LENGTH];
+				do
+				{
+					kv.GetString("name", sWeapon, sizeof(sWeapon));
 
-			if (StrContains(sWeapon, "weapon_") == 0 && g_WeaponsList.FindString(sWeapon) == -1)
-				g_WeaponsList.PushString(sWeapon);
+					if (StrContains(sWeapon, "weapon_") == 0 && g_WeaponsList.FindString(sWeapon) == -1)
+						g_WeaponsList.PushString(sWeapon);
+				}
+				while (kv.GotoNextKey());
+			}
+			else
+			{
+				LogError("Error parsing items list from items_game.txt.");
+				delete kv;
+				return false;
+			}
+
+			delete kv;
 		}
-		while (kv.GotoNextKey());
-	}
-	else
-	{
-		LogError("Error parsing items list from items_game.txt.");
-		delete kv;
-		return false;
+
+		case Engine_CSS: {
+			char sPath[PLATFORM_MAX_PATH];
+			FormatEx(sPath, sizeof(sPath), "scripts/");
+
+			DirectoryListing dir = OpenDirectory(sPath, true);
+
+			if (dir != null) {
+				char sFile[PLATFORM_MAX_PATH];
+				FileType type;
+
+				while (dir.GetNext(sFile, sizeof(sFile), type)) {
+					if (type != FileType_File) {
+						continue;
+					}
+
+					if (StrContains(sFile, "weapon_") == 0 && g_WeaponsList.FindString(sFile) == -1) {
+						g_WeaponsList.PushString(sFile);
+					}
+				}
+
+				delete dir;
+			}
+		}
 	}
 
-	delete kv;
-	LogMessage("Successfully parsed items_game.txt for %i weapons.", g_WeaponsList.Length);
+	LogMessage("Successfully parsed files for %i weapons.", g_WeaponsList.Length);
 	return true;
 }
 
