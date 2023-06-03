@@ -423,7 +423,7 @@ public int MenuHandler_ChangeTag(Menu menu, MenuAction action, int param1, int p
 				}
 				else 
 				{
-					CPrintToChat(param1, "%T", "tag enabled", param1);					
+					CPrintToChat(param1, "%T", "tag change enabled", param1);					
 				}
 
 				g_IsWaitingForTag[param1] = !g_IsWaitingForTag[param1];

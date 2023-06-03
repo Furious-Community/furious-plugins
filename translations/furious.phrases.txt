@@ -437,7 +437,7 @@
 		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} Your groups tag won't be displayed anymore."
 	}
 
-	"tag enabled"
+	"tag change enabled"
 	{
 		"en"		"{darkblue}[ {blue}VIP {darkblue}] {bluegrey} You have enabled your tag."
 	}
