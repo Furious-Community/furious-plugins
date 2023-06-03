@@ -279,6 +279,8 @@ int g_IsDataLoaded[MAXPLAYERS + 1][5];
 int g_HudColorTimes[MAXPLAYERS + 1];
 int g_LastSpectated[MAXPLAYERS + 1];
 
+Handle g_NextSeasonTimer;
+
 /*-- Plugin Info --*/
 public Plugin myinfo =
 {
@@ -454,7 +456,7 @@ public void OnPluginStart()
 	g_Seasons.PushString("06-01");
 	g_Seasons.PushString("09-01");
 
-	TriggerTimer(CreateTimer(120.0, Timer_DisplayNextSeason, _, TIMER_REPEAT), true);
+	g_NextSeasonTimer = CreateTimer(120.0, Timer_DisplayNextSeason, _, TIMER_REPEAT);
 	TriggerTimer(CreateTimer(0.1, Timer_VipScoreboardIcon, _, TIMER_REPEAT), true);
 
 	AutoExecConfig_CleanFile();
@@ -503,6 +505,10 @@ public Action Timer_DisplayNextSeason(Handle timer)
 {
 	if (!convar_Status.BoolValue)
 		return Plugin_Continue;
+	
+	if (g_iNextSeason == 0) {
+		return Plugin_Continue;
+	}
 
 	char sTime[128];
 	FormatTime(sTime, sizeof(sTime), "%A, %B %d, %Y at %R", g_iNextSeason);
@@ -5114,6 +5120,10 @@ public Action Command_Season(int client, int args)
 {
 	if (!convar_Status.BoolValue || !IsClientInGame(client))
 		return Plugin_Continue;
+	
+	if (g_iNextSeason == 0) {
+		return Plugin_Continue;
+	}
 
 	char sTime[128];
 	FormatTime(sTime, sizeof(sTime), "%A, %B %d, %Y at %R", g_iNextSeason);
@@ -5248,8 +5258,11 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 	}
 	else
 	{
+		g_iNextSeason = iNearestTimeStamp;
 		g_iSeason = 1;
 	}
+
+	TriggerTimer(g_NextSeasonTimer, true);
 
 	Call_StartForward(g_Forward_OnSeasonRetrieved);
 	Call_PushCell(g_iSeason);
@@ -5258,12 +5271,11 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 	// Queries won't fail if tables already exist so have this here. This is also so that g_bActiveSeason is set to true
 	TryCreateSeasonalMapAndSessionTables();
 
-	g_iNextSeason = iNearestTimeStamp;
-
 	char sTime[128];
 	FormatTime(sTime, sizeof(sTime), "%A, %B %d, %Y", g_iNextSeason);
 
 	LogMessage("Current Season: %i - Next Season Date: %s", g_iSeason, sTime);
+	PrintToServer("[Furious] Current Season: %i - Next Season Date: %s", g_iSeason, sTime);
 
 	char sTable[MAX_TABLE_SIZE];
 	convar_Table_GlobalData.GetString(sTable, sizeof(sTable));
