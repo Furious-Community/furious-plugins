@@ -1104,7 +1104,7 @@ void SyncClientStatistics(int client)
 		{
 			GetTableString_Season(sTable, sizeof(sTable));
 
-			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
+			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
 			g_Database_Server.Query(TQuery_PullClientSeasonCache, sQuery, serial);
 		}
 		else if (!g_IsDataLoaded[client][DATA_MAP])
@@ -1234,7 +1234,7 @@ public void TQuery_OnGlobalUpdate(Database db, DBResultSet results, const char[]
 			GetTableString_Season(sTable, sizeof(sTable));
 
 			char sQuery[MAX_QUERY_SIZE];
-			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
+			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
 			g_Database_Server.Query(TQuery_PullClientSeasonCache, sQuery, data);
 		}
 		else if (!g_IsDataLoaded[client][DATA_MAP])
@@ -1356,7 +1356,7 @@ public void TQuery_PullClientSeasonData(Database db, DBResultSet results, const 
 			GetTableString_Season(sTable, sizeof(sTable));
 
 			char sQuery[MAX_QUERY_SIZE];
-			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
+			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';", sTable, sTable, sTable, g_iCacheData_AccountID[client]);
 			g_Database_Server.Query(TQuery_PullClientSeasonCache, sQuery, data);
 		}
 		else if (!g_IsDataLoaded[client][DATA_MAP])
