@@ -124,7 +124,6 @@ ArrayList g_TiersList;
 bool g_bActiveSeason;
 int g_iSeason;
 int g_iNextSeason;
-ArrayList g_Seasons;
 
 int g_iCooldown[MAXPLAYERS + 1];
 Handle g_hTimer_Playtime[MAXPLAYERS + 1];
@@ -449,12 +448,6 @@ public void OnPluginStart()
 
 	g_SessionCache = new StringMap();
 	g_SessionIDs = new ArrayList();
-
-	g_Seasons = new ArrayList(ByteCountToCells(64));
-	g_Seasons.PushString("12-01");
-	g_Seasons.PushString("03-01");
-	g_Seasons.PushString("06-01");
-	g_Seasons.PushString("09-01");
 
 	g_NextSeasonTimer = CreateTimer(120.0, Timer_DisplayNextSeason, _, TIMER_REPEAT);
 	TriggerTimer(CreateTimer(0.1, Timer_VipScoreboardIcon, _, TIMER_REPEAT), true);
@@ -5197,9 +5190,6 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 	char sCurrent[64];
 	FormatTime(sCurrent, sizeof(sCurrent), "%m-%d");
 
-	char sCurrent2[64];
-	FormatTime(sCurrent2, sizeof(sCurrent2), "%Y-%m-%d");
-
 	char sYear[64];
 	FormatTime(sYear, sizeof(sYear), "%Y");
 
@@ -5210,28 +5200,41 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 		iLastUpdate = results.FetchInt(2);
 
 	int iCurrentTimeStamp = GetTime();
-	int iNearestTimeStamp = 99999999999999999999;
+	int iNearestTimeStamp;
 
-	for (int i = 0; i < g_Seasons.Length; ++i)
+	ArrayList seasons = new ArrayList(ByteCountToCells(16));
+	seasons.PushString("03-01");
+	seasons.PushString("06-01");
+	seasons.PushString("09-01");
+	seasons.PushString("12-01");
+
+	for (int i = 0; i < seasons.Length; i++)
 	{
-		char sDate[64], sPart[2][32], sDateF[64];
-		g_Seasons.GetString(i, sDate, sizeof(sDate));
-		ExplodeString(sDate, "-", sPart, sizeof(sPart), sizeof(sPart[]), true);
+		char sDate[64], sPart[2][32];
+		seasons.GetString(i, sDate, sizeof(sDate));
+		ExplodeString(sDate, "-", sPart, sizeof(sPart), sizeof(sPart[]));
 
 		int iMonth = StringToInt(sPart[0]);
 		int iDay = StringToInt(sPart[1]);
+		PrintToServer("%i-%i", iMonth, iDay);
 
 		int iTimeStamp1 = TimeToUnix(iYear, iMonth, iDay, convar_SeasonChangeTime.IntValue - 1, 0, 0, UT_TIMEZONE_UTC);
-		FormatTime(sDateF, sizeof(sDateF), "%Y-%m-%d", iTimeStamp1);
 
-		if (iTimeStamp1 > iCurrentTimeStamp && iTimeStamp1 < iNearestTimeStamp && iTimeStamp1 > iLastUpdate)
+		//Make sure we start with a valid end season date somewhere if this is our 1st load.
+		if (iNearestTimeStamp == 0) {
 			iNearestTimeStamp = iTimeStamp1;
+			continue;
+		}
+
+		if (iTimeStamp1 > iCurrentTimeStamp && iTimeStamp1 < iNearestTimeStamp && iTimeStamp1 > iLastUpdate) {
+			iNearestTimeStamp = iTimeStamp1;
+		}
 
 		int iTimeStamp2 = TimeToUnix(iYear + 1, iMonth, iDay, convar_SeasonChangeTime.IntValue - 1, 0, 0, UT_TIMEZONE_UTC);
-		FormatTime(sDateF, sizeof(sDateF), "%Y-%m-%d", iTimeStamp2);
 
-		if (iTimeStamp2 > iCurrentTimeStamp && iTimeStamp2 < iNearestTimeStamp && iTimeStamp2 > iLastUpdate)
+		if (iTimeStamp2 > iCurrentTimeStamp && iTimeStamp2 < iNearestTimeStamp && iTimeStamp2 > iLastUpdate) {
 			iNearestTimeStamp = iTimeStamp2;
+		}
 	}
 
 	if (bFetch && g_iSeason != 0)
@@ -5241,10 +5244,11 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 		char sLastUpdate[64];
 		FormatTime(sLastUpdate, sizeof(sLastUpdate), "%m-%d", iLastUpdate);
 
-		if (g_Seasons.FindString(sCurrent) != -1 && g_iNextSeason <= iCurrentTimeStamp && iLastUpdate < iCurrentTimeStamp)
+		if (seasons.FindString(sCurrent) != -1 && g_iNextSeason <= iCurrentTimeStamp && iLastUpdate < iCurrentTimeStamp)
 		{
 			// SEASON UP!
 			g_iSeason++;
+			g_iNextSeason = iNearestTimeStamp;
 
 			char sIP[64];
 			GetServerIP(sIP, sizeof(sIP));
@@ -5262,6 +5266,7 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 		g_iSeason = 1;
 	}
 
+	delete seasons;
 	TriggerTimer(g_NextSeasonTimer, true);
 
 	Call_StartForward(g_Forward_OnSeasonRetrieved);
@@ -5289,9 +5294,6 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 	char sQuery[MAX_QUERY_SIZE];
 	g_Database_Global.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (`hostname`, `ip`, `season_number`, `next_season`) VALUES ('%s', '%s', '%i', '%i') ON DUPLICATE KEY UPDATE `hostname` = '%s', `season_number` = '%i', `next_season` = '%i';", sTable, sHostname, sIP, g_iSeason, g_iNextSeason, sHostname, g_iSeason, g_iNextSeason);
 	g_Database_Global.Query(TQuery_OnUpdateServerSettings, sQuery);
-
-	if (g_iSeason == 0)
-		ThrowError("Error while initializing season: Invalid season of 0");
 }
 
 void TryCreateSeasonalMapAndSessionTables()
