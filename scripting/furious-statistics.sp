@@ -5203,10 +5203,10 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 	int iNearestTimeStamp;
 
 	ArrayList seasons = new ArrayList(ByteCountToCells(16));
+	seasons.PushString("12-01");
 	seasons.PushString("03-01");
 	seasons.PushString("06-01");
 	seasons.PushString("09-01");
-	seasons.PushString("12-01");
 
 	for (int i = 0; i < seasons.Length; i++)
 	{
@@ -5216,13 +5216,12 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 
 		int iMonth = StringToInt(sPart[0]);
 		int iDay = StringToInt(sPart[1]);
-		
+
 		int iTimeStamp1 = TimeToUnix(iYear, iMonth, iDay, convar_SeasonChangeTime.IntValue - 1, 0, 0, UT_TIMEZONE_UTC);
 
 		//Make sure we start with a valid end season date somewhere if this is our 1st load.
 		if (iNearestTimeStamp == 0) {
 			iNearestTimeStamp = iTimeStamp1;
-			continue;
 		}
 
 		if (iTimeStamp1 > iCurrentTimeStamp && iTimeStamp1 < iNearestTimeStamp && iTimeStamp1 > iLastUpdate) {
