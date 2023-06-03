@@ -2369,6 +2369,8 @@ public Action Command_OpenStatisticsMenu(int client, int args)
 
 void ShowStatisticsMenu(int client, const char[] sSearch)
 {
+	PrintToServer("sSearch: %s", sSearch);
+
 	if (!client)
 	{
 		return;
@@ -2380,7 +2382,13 @@ void ShowStatisticsMenu(int client, const char[] sSearch)
 	}
 
 	bool bIsSteamID = StrContains(sSearch, "STEAM_") != -1;
-	int target = FindTargetEx(client, sSearch, true, false);
+	
+	int target = -1;
+	if (bIsSteamID) {
+		target = GetClientBySteamID(sSearch, AuthId_Steam2);
+	} else {
+		target = FindTargetEx(client, sSearch, true, false);
+	}
 
 	int size = 2 * strlen(sSearch) + 1;
 	char[] sSearchE = new char[size];
@@ -2396,8 +2404,9 @@ void ShowStatisticsMenu(int client, const char[] sSearch)
 
 	if (target > 0)
 	{
-		pack.WriteCell(GetClientSerial(client));
-		pack.WriteCell(GetClientSerial(target));
+		PrintToServer("true");
+		pack.WriteCell(GetClientUserId(client));
+		pack.WriteCell(GetClientUserId(target));
 
 		char sQuery[512];
 		Format(sQuery, sizeof(sQuery), "SELECT s.country, (SELECT COUNT(*) as rank_country FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills) AND country = s.country) + 1 as rank_country, (SELECT COUNT(*) as total_country FROM `%s` WHERE country = s.country) as total_country FROM `%s` as s WHERE %s;", sTable, sTable, sTable, sSearchPost);
@@ -2464,7 +2473,7 @@ public void OnParseCountry_Offline(Database db, DBResultSet results, const char[
 	GetTableString_Season(sTable, sizeof(sTable));
 
 	char sQuery[MAX_QUERY_SIZE];
-	Format(sQuery, sizeof(sQuery), "SELECT s.name, s.accountid, s.steamid2, s.steamid64, s.last_updated, s.points, s.kills, s.deaths, s.assists, s.headshots, s.kdr, s.accuracy, s.playtime, s.weapons_statistics, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE %s;", sTable, sTable, sTable, sSearchPost);
+	Format(sQuery, sizeof(sQuery), "SELECT s.name, s.accountid, s.steamid2, s.steamid64, s.last_updated, s.points, s.kills, s.deaths, s.assists, s.headshots, s.kdr, s.accuracy, s.playtime, s.weapons_statistics, (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE %s;", sTable, sTable, sTable, sSearchPost);
 	g_Database_Server.Query(TQuery_PullMenuStatistics, sQuery, pack);
 }
 
@@ -2478,17 +2487,17 @@ public void OnParseCountry_Online(Database db, DBResultSet results, const char[]
 
 	pack.Reset();
 
-	int serial = pack.ReadCell();
-	int serial2 = pack.ReadCell();
+	int userid1 = pack.ReadCell();
+	int userid2 = pack.ReadCell();
 
 	delete pack;
 
 	int client;
-	if ((client = GetClientFromSerial(serial)) == 0)
+	if ((client = GetClientOfUserId(userid1)) == 0)
 		return;
 
 	int target;
-	if ((target = GetClientFromSerial(serial2)) == 0)
+	if ((target = GetClientOfUserId(userid2)) == 0)
 	{
 		CPrintToChat(client, "Target is no longer available.");
 		return;
@@ -3602,7 +3611,7 @@ void UpdateClientPositions(int client, bool bOverlay = true)
 		iAccountID);
 	trans.AddQuery(sQuery);
 
-	g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';",
+	g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT s.points, (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE s.accountid = '%i';",
 		sTable,
 		sTable,
 		sTable,
@@ -4029,7 +4038,7 @@ public Action Command_PrintRankInfo(int client, int args)
 	}
 
 	char sQuery[MAX_QUERY_SIZE];
-	Format(sQuery, sizeof(sQuery), "SELECT s.name, s.kills, s.deaths, s.points, s.kdr, s.accuracy, (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE %s;",
+	Format(sQuery, sizeof(sQuery), "SELECT s.name, s.kills, s.deaths, s.points, s.kdr, s.accuracy, (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE %s;",
 		sTable,
 		sTable,
 		sTable,
@@ -5418,7 +5427,7 @@ void OpenTopCountries(int client)
 	convar_Table_GlobalStatistics.GetString(sTable, sizeof(sTable));
 
 	char sQuery[512];
-	g_Database_Global.Format(sQuery, sizeof(sQuery), "SELECT s.country, SUM(s.points), (SELECT COUNT(*) as rank FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as rank FROM `%s` as s GROUP BY s.country, s.points DESC ORDER BY `rank` ASC;", sTable, sTable);
+	g_Database_Global.Format(sQuery, sizeof(sQuery), "SELECT s.country, SUM(s.points), (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position FROM `%s` as s GROUP BY s.country, s.points DESC ORDER BY `rank` ASC;", sTable, sTable);
 	g_Database_Global.Query(OnParseTopCountries, sQuery, GetClientSerial(client));
 }
 

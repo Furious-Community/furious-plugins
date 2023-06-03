@@ -238,6 +238,24 @@ stock int FindTargetEx(int client, const char[] target, bool nobots = false, boo
 	return -1;
 }
 
+stock int GetClientBySteamID(const char[] steamid, AuthIdType authtype = AuthId_Engine)
+{
+	if (strlen(steamid) == 0) {
+		return -1;
+	}
+	
+	char sSteamID[64];
+	for (int i = 1; i <= MaxClients; i++) {
+		if (!IsClientInGame(i) || IsFakeClient(i) || !GetClientAuthId(i, authtype, sSteamID, sizeof(sSteamID)) || !StrEqual(steamid, sSteamID)) {
+			continue;
+		}
+
+		return i;
+	}
+
+	return -1;
+}
+
 stock float GetMenuFloat(Menu menu, const char[] id, float defaultvalue = 0.0) {
 	if (menu == null || strlen(id) == 0) {
 		return defaultvalue;
