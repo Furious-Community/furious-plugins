@@ -601,8 +601,9 @@ public void OnMapEnd()
 					trans.AddQuery(sQuery);
 
 					delete trie;
-					g_SessionCache.Remove(sAccountID);
 				}
+				
+				g_SessionCache.Remove(sAccountID);
 			}
 
 			g_SessionCache.Clear();
@@ -621,11 +622,11 @@ public void OnMapEnd()
 
 			IntToString(iAccountID, sAccountID, sizeof(sAccountID));
 
-			if (g_SessionCache.GetValue(sAccountID, trie) && trie != null)
-			{
+			if (g_SessionCache.GetValue(sAccountID, trie) && trie != null) {
 				delete trie;
-				g_SessionCache.Remove(sAccountID);
 			}
+			
+			g_SessionCache.Remove(sAccountID);
 		}
 		g_SessionCache.Clear(); //Nested handles, need to update later to remove them otherwise leaks.
 		g_SessionIDs.Clear();
