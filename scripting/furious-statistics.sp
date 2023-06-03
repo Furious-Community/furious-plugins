@@ -2382,7 +2382,7 @@ void ShowStatisticsMenu(int client, const char[] sSearch)
 	}
 
 	bool bIsSteamID = StrContains(sSearch, "STEAM_") != -1;
-	
+
 	int target = -1;
 	if (bIsSteamID) {
 		target = GetClientBySteamID(sSearch, AuthId_Steam2);
@@ -2404,7 +2404,6 @@ void ShowStatisticsMenu(int client, const char[] sSearch)
 
 	if (target > 0)
 	{
-		PrintToServer("true");
 		pack.WriteCell(GetClientUserId(client));
 		pack.WriteCell(GetClientUserId(target));
 
@@ -2473,7 +2472,7 @@ public void OnParseCountry_Offline(Database db, DBResultSet results, const char[
 	GetTableString_Season(sTable, sizeof(sTable));
 
 	char sQuery[MAX_QUERY_SIZE];
-	Format(sQuery, sizeof(sQuery), "SELECT s.name, s.accountid, s.steamid2, s.steamid64, s.last_updated, s.points, s.kills, s.deaths, s.assists, s.headshots, s.kdr, s.accuracy, s.playtime, s.weapons_statistics, (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE %s;", sTable, sTable, sTable, sSearchPost);
+	Format(sQuery, sizeof(sQuery), "SELECT s.name, s.accountid, s.steamid2, s.steamid64, s.first_created, s.last_updated, s.points, s.kills, s.deaths, s.assists, s.headshots, s.kdr, s.accuracy, s.playtime, s.weapons_statistics, (SELECT COUNT(*) as total FROM `%s` as r WHERE r.points > s.points OR (r.points = s.points AND r.kills > s.kills)) + 1 as position, (SELECT COUNT(*) as total FROM `%s`) as total FROM `%s` as s WHERE %s;", sTable, sTable, sTable, sSearchPost);
 	g_Database_Server.Query(TQuery_PullMenuStatistics, sQuery, pack);
 }
 
@@ -2506,6 +2505,7 @@ public void OnParseCountry_Online(Database db, DBResultSet results, const char[]
 	char sName[MAX_NAME_LENGTH];
 	GetClientName(target, sName, sizeof(sName));
 
+	int iFirstCreated = g_Stats[target][DATA_SEASON].first_created;
 	int iLastUpdated = g_Stats[target][DATA_SEASON].last_updated;
 	int iPoints = RoundToFloor(g_Stats[target][DATA_SEASON].points);
 	int iKills = g_Stats[target][DATA_SEASON].kills;
@@ -2514,6 +2514,7 @@ public void OnParseCountry_Online(Database db, DBResultSet results, const char[]
 	int iHeadshots = g_Stats[target][DATA_SEASON].headshots;
 	float fKDR = g_Stats[target][DATA_SEASON].kdr;
 	float fAccuracy = g_Stats[target][DATA_SEASON].accuracy;
+	float fPlaytime = g_Stats[target][DATA_SEASON].playtime + GetClientTime(target);
 
 	char sWeaponsData[WEAPON_STATISTICS_SIZE];
 	json_encode(g_Stats[target][DATA_SEASON].weapons, sWeaponsData, sizeof(sWeaponsData));
@@ -2531,7 +2532,7 @@ public void OnParseCountry_Online(Database db, DBResultSet results, const char[]
 		iTotal_Country = results.FetchInt(2);
 	}
 
-	GenerateStatisticsMenu(client, target, sName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID64[client], iLastUpdated, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
+	GenerateStatisticsMenu(client, target, sName, g_iCacheData_AccountID[client], g_sCacheData_SteamID2[client], g_sCacheData_SteamID64[client], iFirstCreated, iLastUpdated, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, fPlaytime, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
 }
 
 public void TQuery_PullMenuStatistics(Database db, DBResultSet results, const char[] error, DataPack pack)
@@ -2593,142 +2594,60 @@ public void TQuery_PullMenuStatistics(Database db, DBResultSet results, const ch
 		char sSteamID64[64];
 		results.FetchString(3, sSteamID64, sizeof(sSteamID64));
 
-		int iLastUpdated = results.FetchInt(4);
-		int iPoints = results.FetchInt(5);
-		int iKills = results.FetchInt(6);
-		int iDeaths = results.FetchInt(7);
-		int iAssists = results.FetchInt(8);
-		int iHeadshots = results.FetchInt(9);
-		float fKDR = results.FetchFloat(10);
-		float fAccuracy = results.FetchFloat(11);
+		int iFirstCreated = results.FetchInt(4);
+		int iLastUpdated = results.FetchInt(5);
+		int iPoints = results.FetchInt(6);
+		int iKills = results.FetchInt(7);
+		int iDeaths = results.FetchInt(8);
+		int iAssists = results.FetchInt(9);
+		int iHeadshots = results.FetchInt(10);
+		float fKDR = results.FetchFloat(11);
+		float fAccuracy = results.FetchFloat(12);
+		float fPlaytime = results.FetchFloat(13);
 
 		char sWeaponsData[WEAPON_STATISTICS_SIZE];
-		results.FetchString(13, sWeaponsData, sizeof(sWeaponsData));
+		results.FetchString(14, sWeaponsData, sizeof(sWeaponsData));
 
-		int iRank = results.FetchInt(14);
-		g_iCachedPlayers = results.FetchInt(15);
+		int iRank = results.FetchInt(15);
+		g_iCachedPlayers = results.FetchInt(16);
 
-		GenerateStatisticsMenu(client, 0, sName, iAccountID, sSteamID2, sSteamID64, iLastUpdated, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
+		GenerateStatisticsMenu(client, 0, sName, iAccountID, sSteamID2, sSteamID64, iFirstCreated, iLastUpdated, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, fPlaytime, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
 	}
 }
 
-void GenerateStatisticsMenu(int client, int target, const char[] sName, int iAccountID, const char[] sSteamID2, const char[] sSteamID64, int iLastUpdated, int iPoints, int iKills, int iDeaths, int iAssists, int iHeadshots, float fKDR, float fAccuracy, const char[] sWeaponsData, int iRank, const char[] sCountry, int iRank_Country, int iTotal_Country)
+void GenerateStatisticsMenu(int client, int target, const char[] sName, int iAccountID, const char[] sSteamID2, const char[] sSteamID64, int iFirstCreated, int iLastUpdated, int iPoints, int iKills, int iDeaths, int iAssists, int iHeadshots, float fKDR, float fAccuracy, float fPlaytime, const char[] sWeaponsData, int iRank, const char[] sCountry, int iRank_Country, int iTotal_Country)
 {
 	char sFirstCreated[128];
-
-	if (target > 0)
-		FormatTime(sFirstCreated, sizeof(sFirstCreated), "%A, %B %d, %Y", g_Stats[target][DATA_GLOBAL].first_created);
-	else
-		FormatEx(sFirstCreated, sizeof(sFirstCreated), "Not Online");
+	FormatTime(sFirstCreated, sizeof(sFirstCreated), "%A, %B %d, %Y", (target > 0) ? g_Stats[target][DATA_GLOBAL].first_created : iFirstCreated);
 
 	char sLastUpdated[128];
 	FormatTime(sLastUpdated, sizeof(sLastUpdated), "%A, %B %d, %Y", iLastUpdated);
 
 	float fTime;
-
-	if (target > 0)
-	{
+	if (target > 0) {
 		fTime = g_Stats[target][DATA_GLOBAL].playtime + GetClientTime(target);
-		ShowStatsMenu(client, target, sName, iAccountID, sSteamID2, sSteamID64, sFirstCreated, sLastUpdated, fTime, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
-	}
-	else
-	{
-		DataPack pack = new DataPack();
-		pack.WriteCell(GetClientSerial(client));
-		pack.WriteString(sName);
-		pack.WriteCell(iAccountID);
-		pack.WriteString(sSteamID2);
-		pack.WriteString(sSteamID64);
-		pack.WriteString(sFirstCreated);
-		pack.WriteString(sLastUpdated);
-		pack.WriteCell(iPoints);
-		pack.WriteCell(iKills);
-		pack.WriteCell(iDeaths);
-		pack.WriteCell(iAssists);
-		pack.WriteCell(iHeadshots);
-		pack.WriteFloat(fKDR);
-		pack.WriteFloat(fAccuracy);
-		pack.WriteString(sWeaponsData);
-		pack.WriteCell(iRank);
-		pack.WriteString(sCountry);
-		pack.WriteCell(iRank_Country);
-		pack.WriteCell(iTotal_Country);
-
-		char sTable[MAX_TABLE_SIZE];
-		convar_Table_GlobalStatistics.GetString(sTable, sizeof(sTable));
-
-		char sQuery[MAX_QUERY_SIZE];
-		g_Database_Global.Format(sQuery, sizeof(sQuery), "SELECT `playtime` FROM `%s` WHERE `steamid2` = '%s';", sTable, sSteamID2);
-		g_Database_Global.Query(TQuery_PullMenuPlaytime, sQuery, pack);
-	}
-}
-
-public void TQuery_PullMenuPlaytime(Database db, DBResultSet results, const char[] error, DataPack data)
-{
-	if (results == null)
-	{
-		delete data;
-		ThrowError("Error pulling client global playtime for display: %s", error);
+	} else {
+		fTime = fPlaytime;
 	}
 
-	data.Reset();
-
-	int client = GetClientFromSerial(data.ReadCell());
-
-	char sName[MAX_NAME_LENGTH];
-	data.ReadString(sName, sizeof(sName));
-
-	int iAccountID = data.ReadCell();
-
-	char sSteamID2[64];
-	data.ReadString(sSteamID2, sizeof(sSteamID2));
-
-	char sSteamID64[64];
-	data.ReadString(sSteamID64, sizeof(sSteamID64));
-
-	char sFirstCreated[128];
-	data.ReadString(sFirstCreated, sizeof(sFirstCreated));
-
-	char sLastUpdated[128];
-	data.ReadString(sLastUpdated, sizeof(sLastUpdated));
-
-	int iPoints = data.ReadCell();
-	int iKills = data.ReadCell();
-	int iDeaths = data.ReadCell();
-	int iAssists = data.ReadCell();
-	int iHeadshots = data.ReadCell();
-	float fKDR = data.ReadFloat();
-	float fAccuracy = data.ReadFloat();
-
-	char sWeaponsData[WEAPON_STATISTICS_SIZE];
-	data.ReadString(sWeaponsData, sizeof(sWeaponsData));
-
-	int iRank = data.ReadCell();
-
-	char sCountry[64];
-	data.ReadString(sCountry, sizeof(sCountry));
-
-	int iRank_Country = data.ReadCell();
-	int iTotal_Country = data.ReadCell();
-
-	if (client == 0)
-		return;
-
-	if (results.FetchRow())
-	{
-		float fTime = results.FetchFloat(0);
-		ShowStatsMenu(client, client, sName, iAccountID, sSteamID2, sSteamID64, sFirstCreated, sLastUpdated, fTime, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
-	}
+	ShowStatsMenu(client, target, sName, iAccountID, sSteamID2, sSteamID64, sFirstCreated, sLastUpdated, fTime, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
 }
 
 void ShowStatsMenu(int client, int target = 0, const char[] sName, int iAccountID, const char[] sSteamID2, const char[] sSteamID64, const char[] sFirstCreated, const char[] sLastUpdated, float fTime, int iPoints, int iKills, int iDeaths, int iAssists, int iHeadshots, float fKDR, float fAccuracy, const char[] sWeaponsData, int iRank, const char[] sCountry, int iRank_Country, int iTotal_Country)
 {
+	char sStatus[32];
+	if (target > 0) {
+		sStatus = "Online";
+	} else {
+		sStatus = "Offline";
+	}
+
 	char sPlaytime[128];
 	FormatSeconds(fTime, sPlaytime, sizeof(sPlaytime), "%D days %H hours %M minutes");
 
 	delete g_StatisticsMenu[client];
 	g_StatisticsMenu[client] = new Menu(MenuHandle_Statistics, MenuAction_Select | MenuAction_Cancel | MenuAction_End | MenuAction_DrawItem | MenuAction_DisplayItem);
-	g_StatisticsMenu[client].SetTitle("%s\n%s\nCountry: %s\nFirst Seen: %s\nLast Seen: %s\nTotal Playtime: %s\n \n", sName, sSteamID2, sCountry, sFirstCreated, sLastUpdated, sPlaytime);
+	g_StatisticsMenu[client].SetTitle("%s (%s)\n%s\nCountry: %s\nFirst Seen: %s\nLast Seen: %s\nTotal Playtime: %s\n \n", sName, sStatus, sSteamID2, (strlen(sCountry) > 0) ? sCountry : "Unknown", sFirstCreated, sLastUpdated, sPlaytime);
 
 	g_StatisticsMenu[client].AddItem("season", "Season Stats");
 	g_StatisticsMenu[client].AddItem("session", "Session Stats");
