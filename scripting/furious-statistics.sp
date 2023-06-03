@@ -5216,8 +5216,7 @@ public void TQuery_OnSeasonsCheck(Database db, DBResultSet results, const char[]
 
 		int iMonth = StringToInt(sPart[0]);
 		int iDay = StringToInt(sPart[1]);
-		PrintToServer("%i-%i", iMonth, iDay);
-
+		
 		int iTimeStamp1 = TimeToUnix(iYear, iMonth, iDay, convar_SeasonChangeTime.IntValue - 1, 0, 0, UT_TIMEZONE_UTC);
 
 		//Make sure we start with a valid end season date somewhere if this is our 1st load.
