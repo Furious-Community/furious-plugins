@@ -2505,7 +2505,7 @@ public void OnParseCountry_Online(Database db, DBResultSet results, const char[]
 	char sName[MAX_NAME_LENGTH];
 	GetClientName(target, sName, sizeof(sName));
 
-	int iFirstCreated = g_Stats[target][DATA_SEASON].first_created;
+	int iFirstCreated = g_Stats[target][DATA_GLOBAL].first_created;
 	int iLastUpdated = g_Stats[target][DATA_SEASON].last_updated;
 	int iPoints = RoundToFloor(g_Stats[target][DATA_SEASON].points);
 	int iKills = g_Stats[target][DATA_SEASON].kills;
