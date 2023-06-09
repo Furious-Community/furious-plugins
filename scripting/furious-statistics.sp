@@ -3,7 +3,7 @@
 #pragma newdecls required
 
 /*-- Defines --*/
-#define PLUGIN_VERSION "1.3.6"
+#define PLUGIN_VERSION "1.3.7"
 
 #define VIP_FLAGS ADMFLAG_CUSTOM5
 
@@ -1096,7 +1096,7 @@ void SyncClientStatistics(int client)
 		{
 			GetTableString_Season(sTable, sizeof(sTable));
 
-			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT `kills`, `deaths`, `assists`, `headshots`, `points`, `longest_killstreak`, `hits`, `shots`, `kdr`, `accuracy`, `playtime`, `weapons_statistics`, `last_updated` FROM `%s` WHERE `accountid` = '%i';", sTable, g_iCacheData_AccountID[client]);
+			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT `kills`, `deaths`, `assists`, `headshots`, `points`, `longest_killstreak`, `hits`, `shots`, `kdr`, `accuracy`, `playtime`, `weapons_statistics`, `first_created`, `last_updated` FROM `%s` WHERE `accountid` = '%i';", sTable, g_iCacheData_AccountID[client]);
 			g_Database_Server.Query(TQuery_PullClientSeasonData, sQuery, serial);
 		}
 		else if (!g_IsDataLoaded[client][DATA_CACHE])
@@ -1210,12 +1210,6 @@ public void TQuery_OnGlobalUpdate(Database db, DBResultSet results, const char[]
 		return;
 	}
 
-	if (results.AffectedRows == 1)
-	{
-		int time = GetTime();
-		g_Stats[client][DATA_GLOBAL].first_created = time;
-	}
-
 	if (g_Database_Server != null && g_bActiveSeason)
 	{
 		if (!g_IsDataLoaded[client][DATA_SEASON])
@@ -1224,7 +1218,7 @@ public void TQuery_OnGlobalUpdate(Database db, DBResultSet results, const char[]
 			GetTableString_Season(sTable, sizeof(sTable));
 
 			char sQuery[MAX_QUERY_SIZE];
-			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT `kills`, `deaths`, `assists`, `headshots`, `points`, `longest_killstreak`, `hits`, `shots`, `kdr`, `accuracy`, `playtime`, `weapons_statistics`, `last_updated` FROM `%s` WHERE `accountid` = '%i';", sTable, g_iCacheData_AccountID[client]);
+			g_Database_Server.Format(sQuery, sizeof(sQuery), "SELECT `kills`, `deaths`, `assists`, `headshots`, `points`, `longest_killstreak`, `hits`, `shots`, `kdr`, `accuracy`, `playtime`, `weapons_statistics`, `first_created`, `last_updated` FROM `%s` WHERE `accountid` = '%i';", sTable, g_iCacheData_AccountID[client]);
 			g_Database_Server.Query(TQuery_PullClientSeasonData, sQuery, data);
 		}
 		else if (!g_IsDataLoaded[client][DATA_CACHE])
@@ -1316,7 +1310,8 @@ public void TQuery_PullClientSeasonData(Database db, DBResultSet results, const 
 			g_Stats[client][DATA_SEASON].weapons = json_decode(sWeaponsData);
 		}
 
-		g_Stats[client][DATA_SEASON].last_updated = results.FetchInt(12);
+		g_Stats[client][DATA_SEASON].first_created = results.FetchInt(12);
+		g_Stats[client][DATA_SEASON].last_updated = results.FetchInt(13);
 
 		StringMap overlay_data;
 		g_iCacheData_Tier[client] = CalculateTier(RoundToFloor(g_Stats[client][DATA_SEASON].points), overlay_data);
@@ -2630,11 +2625,6 @@ void GenerateStatisticsMenu(int client, int target, const char[] sName, int iAcc
 		fTime = fPlaytime;
 	}
 
-	ShowStatsMenu(client, target, sName, iAccountID, sSteamID2, sSteamID64, sFirstCreated, sLastUpdated, fTime, iPoints, iKills, iDeaths, iAssists, iHeadshots, fKDR, fAccuracy, sWeaponsData, iRank, sCountry, iRank_Country, iTotal_Country);
-}
-
-void ShowStatsMenu(int client, int target = 0, const char[] sName, int iAccountID, const char[] sSteamID2, const char[] sSteamID64, const char[] sFirstCreated, const char[] sLastUpdated, float fTime, int iPoints, int iKills, int iDeaths, int iAssists, int iHeadshots, float fKDR, float fAccuracy, const char[] sWeaponsData, int iRank, const char[] sCountry, int iRank_Country, int iTotal_Country)
-{
 	char sStatus[32];
 	if (target > 0) {
 		sStatus = "Online";
